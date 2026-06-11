@@ -1,0 +1,40 @@
+import Button from '@/components/ui/Button'
+
+interface CTASectionProps {
+  title: React.ReactNode
+  subtitle: string
+  primaryLabel?: string
+  primaryHref?: string
+  secondaryLabel?: string
+  secondaryHref?: string
+}
+
+export default function CTASection({
+  title,
+  subtitle,
+  primaryLabel = 'Book Consultation',
+  primaryHref = '/contact',
+  secondaryLabel,
+  secondaryHref,
+}: CTASectionProps) {
+  return (
+    <section className="py-28 px-8 bg-[var(--accent-light)]">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="font-serif-display font-normal text-[clamp(2rem,4vw,3rem)] leading-[1.1] text-[var(--ink)] mb-4">
+          {title}
+        </h2>
+        <p className="text-[0.95rem] text-[var(--ink-3)] leading-relaxed mb-10 font-light max-w-xl mx-auto">
+          {subtitle}
+        </p>
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <Button href={primaryHref}>{primaryLabel}</Button>
+          {secondaryLabel && secondaryHref && (
+            <Button href={secondaryHref} variant="secondary">
+              {secondaryLabel}
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

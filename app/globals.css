@@ -1,0 +1,292 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ════════════════════════════════════════════════════════════════
+   AJRG and Associates — "Royal Minimalist" design tokens
+   Fonts are injected as CSS variables by next/font in app/layout.tsx
+   (--font-playfair, --font-inter) for zero-CLS, Lighthouse-100 loading.
+   ════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Ink ramp — DECK PURPLE (sampled from the firm pitch deck) ── */
+  --ink: #221042;   /* Deep indigo-purple — primary text & dark surfaces (deck #281048) */
+  --ink-2: #3A2460; /* muted purple */
+  --ink-3: #6A5E83; /* secondary text (purple-grey) */
+  --ink-4: #9E94B0; /* tertiary text / captions */
+
+  /* ── Regal purple — secondary brand colour for washes & emphasis ── */
+  --royal: #301850;        /* deck mid purple */
+  --royal-light: #683078;  /* deck plum accent */
+  --royal-tint: #ECE7F3;
+
+  /* ── Canvas — soft lavender (deck light tint) ── */
+  --cream: #F4F2F8; /* page background, leans lavender */
+  --white: #FFFFFF;
+  --section: #FFFFFF; /* white blocks pop against the lavender canvas */
+
+  /* ── Gold accent ── */
+  --accent: #C5A059;       /* signature gold — fills, metallic, dividers (unchanged) */
+  --accent-light: #F3EAD6;
+  --accent-dark: #896A2E;  /* functional text/icon gold — deepened to clear WCAG AA (≥4.5:1) on white for small labels */
+
+  /* ── Hairlines ── */
+  --border: #E4E2EA;
+  --border-dark: #C9C6D4;
+
+  /* Deck purple wash — deep indigo → plum, for hero & dark sections */
+  --royal-wash: linear-gradient(140deg, #190A36 0%, #281048 45%, #3A1A60 80%, #4A2472 100%);
+
+  /* ── Motion system — exponential ease-out, no bounce ── */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 180ms;
+  --dur: 320ms;
+  --dur-slow: 620ms;
+
+  /* ── Elevation — shadows tinted with the deck purple, never neutral grey ── */
+  --elev-1: 0 1px 2px rgba(34, 16, 66, 0.05), 0 6px 16px -6px rgba(34, 16, 66, 0.10);
+  --elev-2: 0 2px 4px rgba(34, 16, 66, 0.06), 0 20px 44px -18px rgba(34, 16, 66, 0.20);
+  --elev-gold: 0 10px 36px -12px rgba(197, 160, 89, 0.42);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* fixed navbar height, so in-page anchors don't hide beneath it */
+}
+
+body {
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern', 'liga', 'calt';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Serif display headings get tighter optical tracking + even line breaks */
+h1, h2, h3 {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* Long-form copy: trim orphans without forcing a max-width on every paragraph */
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: var(--royal-tint);
+  color: var(--royal);
+}
+
+/* ════════════════════════════════════════════════
+   GOLD — flat two-tone accent system
+   Dark gold (--accent-dark) on light backgrounds.
+   Signature gold (--accent) on dark backgrounds —
+   wrap any dark section/card in `.on-dark` to switch.
+   ════════════════════════════════════════════════ */
+
+/* Emphasised words in headings — solid gold */
+.gold-text {
+  color: var(--accent-dark);
+}
+
+/* Thin ribbon — divider / accent strip between sections */
+.gold-divider {
+  height: 1px;
+  width: 100%;
+  border: 0;
+  background: var(--accent-dark);
+  opacity: 0.85;
+}
+
+/* Short underline beneath a heading / label */
+.gold-rule {
+  display: block;
+  width: 2.25rem;
+  height: 2px;
+  background: var(--accent-dark);
+  border-radius: 2px;
+}
+
+/* Hairline strip that reveals on hover (cards, buttons).
+   Uses signature gold since it sits across a light→dark hover. */
+.gold-reveal {
+  background: var(--accent);
+}
+
+/* Decorative corner bracket — discovered framing detail */
+.gold-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.gold-corner::before,
+.gold-corner::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-dark);
+}
+.gold-corner::before { top: 0; left: 0; width: 100%; height: 1.5px; }
+.gold-corner::after  { top: 0; left: 0; width: 1.5px; height: 100%; }
+.gold-corner--tr { transform: rotate(90deg); }
+.gold-corner--br { transform: rotate(180deg); }
+.gold-corner--bl { transform: rotate(270deg); }
+
+/* On dark backgrounds, gold switches to the brighter signature tone */
+.on-dark .gold-text { color: var(--accent); }
+.on-dark .gold-divider,
+.on-dark .gold-rule { background: var(--accent); }
+.on-dark .gold-corner::before,
+.on-dark .gold-corner::after { background: var(--accent); }
+
+/* Faint architectural grid — implies structure & clarity (no stock photos) */
+.bg-architectural {
+  background-image:
+    linear-gradient(to right, rgba(40, 16, 72, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(40, 16, 72, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Hero scroll cue — a gold tick that drifts down a hairline rail */
+@keyframes scrollCue {
+  0%   { transform: translateY(-120%); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(360%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessible focus ring — gold, meets WCAG */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Legal pages */
+.prose-legal h2 {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-legal p,
+.prose-legal li {
+  font-size: 0.88rem;
+  color: var(--ink-3);
+  line-height: 1.8;
+  margin-bottom: 0.75rem;
+}
+
+.prose-legal ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.prose-legal ul li {
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.prose-legal ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--accent);
+}
+
+.prose-legal strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@layer utilities {
+  /* Legacy aliases — retargeted to the Royal Minimalist type pairing */
+  .font-serif-display {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  }
+  .font-syne {
+    font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   CRAFT LAYER — elevation, lift, link affordance
+   Shared interaction primitives, tuned to the palette.
+   ════════════════════════════════════════════════ */
+
+/* Quiet, deliberate hover lift — replaces ad-hoc shadow jumps */
+.lift {
+  transition:
+    transform var(--dur) var(--ease-out-quint),
+    box-shadow var(--dur) var(--ease-out-quint),
+    border-color var(--dur) var(--ease-out-quint);
+}
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elev-2);
+}
+
+/* Inline text link — a gold underline that wipes in on hover, no layout shift */
+.link-gold {
+  color: var(--ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  transition:
+    background-size var(--dur) var(--ease-out-quint),
+    color var(--dur) ease;
+}
+.link-gold:hover {
+  background-size: 100% 1.5px;
+  color: var(--accent-dark);
+}
+
+/* Branded scrollbar — a discovered detail, not decoration */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: var(--cream); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-dark);
+    border: 3px solid var(--cream);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+}
+html { scrollbar-color: var(--border-dark) var(--cream); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .lift,
+  .link-gold { transition: none; }
+  .lift:hover { transform: none; }
+}

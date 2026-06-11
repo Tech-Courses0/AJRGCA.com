@@ -1,0 +1,31 @@
+import type { Industry } from '@/types'
+
+interface IndustryCardProps {
+  industry: Industry
+}
+
+export default function IndustryCard({ industry }: IndustryCardProps) {
+  return (
+    <div className="group bg-[var(--section)] p-8 cursor-pointer transition-all duration-300 hover:bg-[var(--ink)]">
+      <div className="text-3xl opacity-20 mb-4 group-hover:opacity-30 transition-opacity duration-300">
+        {industry.icon}
+      </div>
+      <h3 className="font-syne font-bold text-base text-[var(--ink)] group-hover:text-white transition-colors duration-300 mb-2">
+        {industry.name}
+      </h3>
+      <p className="text-[0.8rem] text-[var(--ink-3)] group-hover:text-white/60 leading-relaxed transition-colors duration-300">
+        {industry.description}
+      </p>
+      <div className="flex flex-wrap gap-1.5 mt-4">
+        {industry.tags.map((tag) => (
+          <span
+            key={tag}
+            className="text-[0.68rem] font-medium tracking-[0.06em] uppercase bg-[var(--border)] text-[var(--ink-3)] group-hover:bg-[var(--accent)]/20 group-hover:text-[var(--accent)] px-2.5 py-1 transition-all duration-300"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}

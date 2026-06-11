@@ -1,0 +1,23 @@
+<svg width="480" height="480" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Abstract architectural pattern">
+  <!-- On-brand abstract geometry: structure & clarity. No photography. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C5A059"/>
+      <stop offset="0.5" stop-color="#F3E6B8"/>
+      <stop offset="1" stop-color="#9A7635"/>
+    </linearGradient>
+  </defs>
+  <!-- Concentric arcs -->
+  <circle cx="240" cy="240" r="210" stroke="#301850" stroke-opacity="0.10" stroke-width="1"/>
+  <circle cx="240" cy="240" r="160" stroke="#301850" stroke-opacity="0.14" stroke-width="1"/>
+  <circle cx="240" cy="240" r="110" stroke="#301850" stroke-opacity="0.18" stroke-width="1"/>
+  <!-- Architectural arch -->
+  <path d="M120 380 V200 a120 120 0 0 1 240 0 V380" stroke="#301850" stroke-opacity="0.35" stroke-width="1.5" fill="none"/>
+  <path d="M168 380 V210 a72 72 0 0 1 144 0 V380" stroke="#301850" stroke-opacity="0.30" stroke-width="1.5" fill="none"/>
+  <!-- Vertical structure lines -->
+  <line x1="240" y1="40" x2="240" y2="440" stroke="#301850" stroke-opacity="0.12" stroke-width="1"/>
+  <line x1="120" y1="380" x2="360" y2="380" stroke="#301850" stroke-opacity="0.20" stroke-width="1"/>
+  <!-- Gold accents -->
+  <circle cx="240" cy="200" r="6" fill="url(#gold)"/>
+  <circle cx="240" cy="240" r="3" fill="#C5A059"/>
+</svg>

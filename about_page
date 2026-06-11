@@ -1,0 +1,118 @@
+import type { Metadata } from 'next'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import CTASection from '@/components/sections/CTASection'
+import SectionHeader from '@/components/ui/SectionHeader'
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description:
+    'Learn about KRGSCA—our story, mission, values, and the team of qualified professionals who deliver premium chartered accountancy services across India.',
+}
+
+const values = [
+  { num: '01', title: 'Integrity Without Exception', desc: "We provide honest counsel even when it is inconvenient. Our advice is never shaped by what a client wants to hear." },
+  { num: '02', title: 'Technical Excellence', desc: 'We maintain the highest standards of professional knowledge. Continuous learning is embedded in our firm culture.' },
+  { num: '03', title: 'Client Centricity', desc: 'We measure our success by the outcomes we create for clients, not the volume of work we produce.' },
+  { num: '04', title: 'Commercial Awareness', desc: 'Compliance and strategy are not in conflict. We integrate both to deliver advice that is practical and impactful.' },
+  { num: '05', title: 'Confidentiality', desc: 'Client information is sacrosanct. Our data practices meet the highest standards of professional confidentiality.' },
+  { num: '06', title: 'Long-Term Partnership', desc: 'We do not pursue transactional relationships. We build alliances that create lasting value for clients.' },
+]
+
+const timeline = [
+  { year: '2009', title: 'Firm Founded', desc: 'KRGSCA established as a specialist income tax and audit practice in the heart of the city.' },
+  { year: '2013', title: 'GST Advisory Practice Launched', desc: 'Expanded service offering ahead of GST rollout. Advised 100+ clients on the transition from VAT and Service Tax.' },
+  { year: '2017', title: 'NRI Desk Established', desc: 'Created dedicated practice for Non-Resident Indians, covering FEMA, DTAA, and cross-border planning.' },
+  { year: '2019', title: 'Startup Advisory Division', desc: 'Launched dedicated startup advisory covering DPIIT registration, angel tax, ESOPs, and fundraising compliance.' },
+  { year: '2022', title: '500+ Client Milestone', desc: 'Reached 500 active clients across 12 industry sectors. Expanded team to 30+ qualified professionals.' },
+  { year: '2024', title: 'Digital Transformation', desc: 'Launched client portal, digital document management, and real-time compliance dashboard for all clients.' },
+]
+
+export default function AboutPage() {
+  return (
+    <>
+      <Navbar />
+
+      {/* HERO */}
+      <section className="pt-36 pb-20 px-8 bg-white">
+        <div className="max-w-8xl mx-auto">
+          <p className="text-[0.72rem] font-semibold tracking-[0.12em] uppercase text-[var(--accent)] mb-4">About KRGSCA</p>
+          <h1 className="font-serif-display font-normal text-[clamp(2.5rem,5vw,3.8rem)] leading-[1.1] max-w-4xl text-[var(--ink)]">
+            A practice built on the conviction that{' '}
+            <em className="italic text-[var(--accent)]">great advice changes outcomes.</em>
+          </h1>
+        </div>
+      </section>
+
+      {/* STORY */}
+      <section className="pb-20 px-8">
+        <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+          <div>
+            <SectionHeader label="Our Story" title="From practice to partnership—a fifteen-year journey." />
+          </div>
+          <div className="text-base text-[var(--ink-3)] leading-[1.8] font-light space-y-5">
+            <p>
+              KRGSCA was founded with a singular purpose: to offer the depth of a large firm with the personal commitment of a specialist practice. Over fifteen years, we have grown from a focused tax practice into a full-service financial advisory firm trusted by businesses across sectors.
+            </p>
+            <p>
+              Our partners bring decades of combined experience across income tax, GST, corporate law, and strategic finance. We have advised emerging startups, established SMEs, listed entities, and high-net-worth individuals—bringing the same rigour to every engagement, regardless of size.
+            </p>
+            <p>
+              We believe that good financial advice is not just reactive—it is forward-looking. Our teams invest time in understanding each client&apos;s business model, growth trajectory, and risk appetite before recommending any approach.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* VALUES */}
+      <section className="py-20 px-8 bg-[var(--section)]">
+        <div className="max-w-8xl mx-auto mb-12">
+          <SectionHeader label="Our Values" title="The principles that govern every engagement." />
+        </div>
+        <div className="max-w-8xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {values.map((v) => (
+            <div key={v.num} className="bg-white p-8 border border-[var(--border)]">
+              <div className="font-syne font-extrabold text-[2rem] text-[var(--border-dark)] mb-4">{v.num}</div>
+              <h3 className="font-syne font-bold text-base text-[var(--ink)] mb-2">{v.title}</h3>
+              <p className="text-[0.82rem] text-[var(--ink-3)] leading-relaxed">{v.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TIMELINE */}
+      <section className="py-20 px-8 bg-white">
+        <div className="max-w-8xl mx-auto mb-12">
+          <SectionHeader label="Milestones" title="A track record built over time." />
+        </div>
+        <div className="max-w-3xl mx-auto relative">
+          <div className="absolute left-[120px] top-0 bottom-0 w-px bg-[var(--border)]" />
+          {timeline.map((item) => (
+            <div key={item.year} className="flex gap-8 pb-10 relative">
+              <div className="font-syne font-extrabold text-[0.9rem] text-[var(--accent)] min-w-[80px] text-right mt-1">
+                {item.year}
+              </div>
+              <div
+                className="absolute w-2.5 h-2.5 rounded-full bg-[var(--accent)]"
+                style={{ left: '116px', top: '6px' }}
+              />
+              <div className="pl-6">
+                <h3 className="font-syne font-bold text-[0.9rem] text-[var(--ink)] mb-1">{item.title}</h3>
+                <p className="text-[0.82rem] text-[var(--ink-3)] leading-relaxed">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <CTASection
+        title={<>Partner with a firm that<br />truly <em className="italic text-[var(--accent)]">invests in you.</em></>}
+        subtitle="Schedule a call with one of our senior advisors. No obligations, no pressure—just an honest conversation about how we can help."
+        primaryLabel="Book a Consultation"
+        primaryHref="/contact"
+      />
+
+      <Footer />
+    </>
+  )
+}

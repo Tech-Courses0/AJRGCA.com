@@ -1,0 +1,104 @@
+import Link from 'next/link'
+
+const services = [
+  'Income Tax',
+  'GST Consulting',
+  'Audit & Assurance',
+  'ROC Compliance',
+  'NRI Taxation',
+  'Startup Advisory',
+]
+
+const company = ['About Us', 'Industries', 'Insights', 'Contact']
+const companyHrefs = ['/about', '/industries', '/insights', '/contact']
+
+export default function Footer() {
+  return (
+    <footer className="bg-[var(--ink)] pt-16 pb-8 px-8">
+      <div className="max-w-8xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 pb-12 border-b border-white/10">
+          {/* Brand */}
+          <div>
+            <div className="font-syne font-extrabold text-xl tracking-[0.08em] text-white">
+              KRG<span className="text-[var(--accent)]">SCA</span>
+            </div>
+            <p className="text-[0.8rem] text-white/40 mt-3 leading-relaxed">
+              Chartered Accountants &amp; Financial Consultants. Serving clients across India and globally with precision, integrity, and commercial intelligence.
+            </p>
+            <p className="text-[0.7rem] text-white/20 mt-4 leading-relaxed">
+              ICAI Registration No. XXXXXXX<br />
+              GSTIN: XXXXXXXXX
+            </p>
+          </div>
+
+          {/* Services */}
+          <div>
+            <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
+              Services
+            </div>
+            <ul className="flex flex-col gap-2.5">
+              {services.map((s) => (
+                <li key={s}>
+                  <Link
+                    href="/services"
+                    className="text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white"
+                  >
+                    {s}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
+              Company
+            </div>
+            <ul className="flex flex-col gap-2.5">
+              {company.map((c, i) => (
+                <li key={c}>
+                  <Link
+                    href={companyHrefs[i]}
+                    className="text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white"
+                  >
+                    {c}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
+              Connect
+            </div>
+            <ul className="flex flex-col gap-2.5">
+              {['+91 98765 43210', 'contact@krgsca.com', 'WhatsApp Us', 'LinkedIn', 'Book a Call'].map((item) => (
+                <li key={item}>
+                  <span className="text-[0.82rem] text-white/55 cursor-pointer transition-colors duration-200 hover:text-white">
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6">
+          <p className="text-[0.72rem] text-white/30">
+            ©️ {new Date().getFullYear()} KRGSCA Chartered Accountants. All rights reserved.
+          </p>
+          <div className="flex gap-6">
+            {['Privacy Policy', 'Terms of Use', 'Disclaimer'].map((item) => (
+              <span key={item} className="text-[0.72rem] text-white/30 cursor-pointer hover:text-white/60 transition-colors duration-200">
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}

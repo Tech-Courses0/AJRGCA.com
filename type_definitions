@@ -1,0 +1,45 @@
+export interface Service {
+  id: string
+  icon: string
+  title: string
+  shortDesc: string
+  fullDesc: string
+  points: string[]
+}
+
+export interface Industry {
+  id: string
+  icon: string
+  name: string
+  description: string
+  tags: string[]
+}
+
+export interface Testimonial {
+  initials: string
+  name: string
+  role: string
+  company: string
+  quote: string
+}
+
+export interface Insight {
+  slug: string
+  category: string
+  title: string
+  date: string
+  readTime: string
+  bgColor: string
+  textColor: string
+  label: string
+}
+
+export interface Stat {
+  value: string
+  label: string
+}
+
+export interface NavLink {
+  label: string
+  href: string
+}
