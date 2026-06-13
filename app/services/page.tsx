@@ -74,6 +74,8 @@ export default function ServicesPage() {
       {categoryOrder.map((category) => {
         const group = services.filter((s) => s.category === category)
         const meta = categoryMeta[category]
+        // 3-service categories get a single clean row of three; 4+ stay as the 2-col box
+        const cols = group.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
         return (
           <section key={category} className="py-24 px-8 bg-white border-b border-[var(--border)] last:border-b-0">
             <div className="max-w-8xl mx-auto">
@@ -93,7 +95,7 @@ export default function ServicesPage() {
                 </div>
               </FadeIn>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)]">
+              <div className={`grid grid-cols-1 ${cols} gap-px bg-[var(--border)] border border-[var(--border)]`}>
                 {group.map((service, i) => {
                   const Icon = getIcon(service.icon)
                   return (

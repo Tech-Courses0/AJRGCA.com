@@ -54,7 +54,7 @@ export default function ApproachPage() {
       <Navbar />
 
       {/* ── Hero ── */}
-      <section className="pt-36 pb-20 px-8 bg-[var(--cream)] relative overflow-hidden">
+      <section className="pt-44 pb-20 px-8 bg-[var(--cream)] relative overflow-hidden">
         <span className="bg-architectural absolute inset-0 opacity-50 pointer-events-none" aria-hidden="true" />
         <div className="max-w-8xl mx-auto relative">
           <FadeIn>
@@ -149,8 +149,9 @@ export default function ApproachPage() {
                 desc: 'Accurate, timely MIS underpins sound business decisions.',
               },
             ].map((item, i) => (
-              <FadeIn key={item.title} delay={i * 0.1}>
-                <div className="bg-white p-8 border border-[var(--border)] h-full">
+              <FadeIn key={item.title} delay={i * 0.1} fullWidth>
+                <div className="relative group h-full bg-white p-8 border border-[var(--border)] overflow-hidden transition-all duration-300 hover:border-[var(--border-dark)] hover:shadow-[var(--elev-2)] hover:-translate-y-1">
+                  <span className="gold-reveal absolute top-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500" />
                   <h3 className="font-syne font-bold text-base text-[var(--ink)] mb-3">{item.title}</h3>
                   <p className="text-[0.85rem] text-[var(--ink-3)] leading-relaxed">{item.desc}</p>
                 </div>
