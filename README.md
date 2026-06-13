@@ -1,5 +1,8 @@
 # AJRG and Associates — AJRGCA.com
 
+> 🧑‍💼 **Non-technical and just want to edit content** (text, contact details, team,
+> services, articles)? Read **[HOW-TO-EDIT-THIS-WEBSITE.md](./HOW-TO-EDIT-THIS-WEBSITE.md)** instead — it's in plain English. The notes below are for developers.
+
 Next.js 15 marketing site for AJRG and Associates, Chartered Accountants.
 Design system: **"Royal Minimalist"** (Deep Navy · Regal Purple · Gold · Lavender-Grey canvas),
 Playfair Display + Inter, Tailwind CSS, Framer Motion, Lucide icons.
