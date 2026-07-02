@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, CheckCircle2 } from 'lucide-react'
 import { site } from '@/config/site'
+import FadeIn from '@/components/ui/FadeIn'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
@@ -46,6 +47,18 @@ export default function ContactForm() {
     'w-full bg-white border border-[var(--border)] rounded-md px-4 py-3 text-[0.88rem] text-[var(--ink)] placeholder:text-[var(--ink-4)] focus:outline-none focus:border-[var(--accent)] transition-colors'
   const labelCls = 'block text-[0.72rem] font-semibold tracking-[0.04em] uppercase text-[var(--ink-3)] mb-2'
 
+  if (status === 'sent') {
+    return (
+      <FadeIn direction="none" className="border border-[var(--border)] rounded-card p-10 bg-[var(--section)] flex flex-col items-center text-center gap-3">
+        <CheckCircle2 size={36} className="text-[var(--accent)]" aria-hidden="true" />
+        <h3 className="font-serif-display font-normal text-[1.3rem] text-[var(--ink)]">Enquiry sent</h3>
+        <p className="text-[0.88rem] text-[var(--ink-3)]" aria-live="polite">
+          Thank you — we will respond at the earliest.
+        </p>
+      </FadeIn>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -82,15 +95,14 @@ export default function ContactForm() {
       </button>
 
       <p className="text-[0.72rem] text-[var(--ink-4)] leading-relaxed" aria-live="polite">
-        {status === 'sent' && 'Thank you — your enquiry has been sent. We will respond at the earliest.'}
-        {status === 'error' && (
+        {status === 'error' ? (
           <>
             Something went wrong sending your enquiry. Please{' '}
             <a href={fallbackHref} className="text-[var(--accent-dark)] underline">email us directly</a> instead.
           </>
+        ) : (
+          `By submitting, you consent to us processing your details to respond to your enquiry, per our Privacy Policy.`
         )}
-        {(status === 'idle' || status === 'sending') &&
-          `By submitting, you consent to us processing your details to respond to your enquiry, per our Privacy Policy.`}
       </p>
     </form>
   )
