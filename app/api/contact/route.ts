@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
   try {
     if (body.formType === 'consultation') {
-      await createBooking(
+      const { clientToken } = await createBooking(
         {
           name: body.name,
           organisation: body.organisation,
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         },
         origin
       )
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({ ok: true, statusUrl: `/booking/${clientToken}` })
     }
 
     const subject = `Website enquiry — ${body.name}`

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Clock, ShieldCheck, FileText, Video, CheckCircle2, Calendar } from 'lucide-react'
 import ConsultationForm, { ConsultationSummary } from './ConsultationForm'
+import ExistingBookingBanner from './ExistingBookingBanner'
 import FadeIn from '@/components/ui/FadeIn'
 
 const expect = [
@@ -36,7 +37,9 @@ export default function BookRequestSection() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+    <div>
+      <ExistingBookingBanner />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
       {/* Form */}
       <div className="lg:col-span-3">
         <h2 className="font-serif-display font-normal text-[1.7rem] text-[var(--ink)] mb-1">Request your consultation</h2>
@@ -61,6 +64,7 @@ export default function BookRequestSection() {
         <p className="text-white/45 text-[0.72rem] leading-relaxed mt-7 pt-5 border-t border-white/10">
           Engagement of services is subject to a formal professional engagement letter.
         </p>
+      </div>
       </div>
     </div>
   )

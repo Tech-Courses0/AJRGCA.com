@@ -84,6 +84,8 @@ export async function createBooking(payload: BookingPayload, origin: string) {
       `Track the status of your request here: ${origin}/booking/${client_token}`,
     ].join('\n'),
   })
+
+  return { clientToken: client_token }
 }
 
 export async function getBookingByOwnerToken(token: string) {

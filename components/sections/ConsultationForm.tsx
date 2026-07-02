@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CalendarCheck, CheckCircle2 } from 'lucide-react'
 import { site } from '@/config/site'
 import FadeIn from '@/components/ui/FadeIn'
+import { saveBookingStatusUrl } from '@/lib/booking-storage'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
@@ -70,6 +71,8 @@ export default function ConsultationForm({ onSent }: Props) {
         body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('request failed')
+      const data = await res.json()
+      if (data.statusUrl) saveBookingStatusUrl(data.statusUrl)
       setStatus('sent')
       onSent?.({ name: payload.name, mode: payload.mode, date: payload.date, time: payload.time })
       form.reset()
