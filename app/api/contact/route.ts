@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
-import { neon } from '@neondatabase/serverless'
 import { site } from '@/config/site'
+import { getSql } from '@/lib/db'
+import { sendMail } from '@/lib/resend'
+import { createBooking } from '@/lib/bookings'
 
 type ContactPayload = {
   formType: 'contact'
@@ -45,35 +46,6 @@ function validate(body: Payload): string | null {
   return null
 }
 
-function buildEmail(body: Payload) {
-  if (body.formType === 'consultation') {
-    const subject = `Consultation request — ${body.name}`
-    const text = [
-      `Name: ${body.name}`,
-      `Organisation: ${body.organisation || ''}`,
-      `Email: ${body.email}`,
-      `Phone: ${body.phone}`,
-      `Business type: ${body.businessType || ''}`,
-      `Service area: ${body.serviceArea || ''}`,
-      `Preferred mode: ${body.mode || ''}`,
-      `Preferred date: ${body.date || ''}`,
-      `Preferred time: ${body.time || ''}`,
-      '',
-      'Requirement:',
-      body.message,
-    ].join('\n')
-    return { subject, text }
-  }
-  const subject = `Website enquiry — ${body.name}`
-  const text = `Name: ${body.name}\nOrganisation: ${body.organisation || ''}\nEmail: ${body.email}\n\n${body.message}`
-  return { subject, text }
-}
-
-function getSql() {
-  if (!process.env.DATABASE_URL) return null
-  return neon(process.env.DATABASE_URL)
-}
-
 export async function POST(req: Request) {
   let body: Payload
   try {
@@ -92,51 +64,49 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: validationError }, { status: 400 })
   }
 
-  const { subject, text } = buildEmail(body)
-  const to = process.env.CONTACT_TO_EMAIL || site.email
-  const from = process.env.RESEND_FROM || 'AJRG and Associates <onboarding@resend.dev>'
+  const origin = new URL(req.url).origin
 
-  let resendMessageId: string | null = null
-  if (process.env.RESEND_API_KEY) {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const { data, error } = await resend.emails.send({
-      from,
-      to,
-      replyTo: body.email,
-      subject,
-      text,
-    })
-    if (error) {
-      console.error('[contact] Resend send failed:', error)
-      return NextResponse.json({ ok: false, error: 'Failed to send. Please email us directly.' }, { status: 502 })
+  try {
+    if (body.formType === 'consultation') {
+      await createBooking(
+        {
+          name: body.name,
+          organisation: body.organisation,
+          email: body.email,
+          phone: body.phone,
+          businessType: body.businessType,
+          serviceArea: body.serviceArea,
+          mode: body.mode,
+          date: body.date,
+          time: body.time,
+          message: body.message,
+        },
+        origin
+      )
+      return NextResponse.json({ ok: true })
     }
-    resendMessageId = data?.id ?? null
-  } else {
-    console.log('[contact][dev] would send email:', { to, from, subject, text })
-  }
 
-  const sql = getSql()
-  if (sql) {
-    try {
-      await sql`
-        insert into submissions (form_type, name, organisation, email, phone, message, raw, resend_message_id)
-        values (
-          ${body.formType},
-          ${body.name},
-          ${body.organisation || null},
-          ${body.email},
-          ${body.formType === 'consultation' ? body.phone : null},
-          ${body.message},
-          ${JSON.stringify(body)},
-          ${resendMessageId}
-        )
-      `
-    } catch (err) {
-      console.error('[contact] Postgres insert failed:', err)
+    const subject = `Website enquiry — ${body.name}`
+    const text = `Name: ${body.name}\nOrganisation: ${body.organisation || ''}\nEmail: ${body.email}\n\n${body.message}`
+    const resendMessageId = await sendMail({ to: process.env.CONTACT_TO_EMAIL || site.email, replyTo: body.email, subject, text })
+
+    const sql = getSql()
+    if (sql) {
+      try {
+        await sql`
+          insert into submissions (form_type, name, organisation, email, message, raw, resend_message_id)
+          values ('contact', ${body.name}, ${body.organisation || null}, ${body.email}, ${body.message}, ${JSON.stringify(body)}, ${resendMessageId})
+        `
+      } catch (err) {
+        console.error('[contact] Postgres insert failed:', err)
+      }
+    } else {
+      console.log('[contact][dev] would log submission to Postgres:', body)
     }
-  } else {
-    console.log('[contact][dev] would log submission to Postgres:', body)
-  }
 
-  return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('[contact] send failed:', err)
+    return NextResponse.json({ ok: false, error: 'Failed to send. Please email us directly.' }, { status: 502 })
+  }
 }
