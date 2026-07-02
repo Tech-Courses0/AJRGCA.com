@@ -7,6 +7,13 @@ import FadeIn from '@/components/ui/FadeIn'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
+export type ConsultationSummary = { name: string; mode: string; date: string; time: string }
+
+type Props = {
+  /** When provided, the parent owns the post-submit success UI — this component renders nothing once sent. */
+  onSent?: (summary: ConsultationSummary) => void
+}
+
 function mailtoFallback(g: (k: string) => string) {
   const name = g('name')
   const subject = encodeURIComponent(`Consultation request — ${name || 'New request'}`)
@@ -29,7 +36,7 @@ function mailtoFallback(g: (k: string) => string) {
   return `mailto:${site.email}?subject=${subject}&body=${body}`
 }
 
-export default function ConsultationForm() {
+export default function ConsultationForm({ onSent }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [fallbackHref, setFallbackHref] = useState('')
 
@@ -64,6 +71,7 @@ export default function ConsultationForm() {
       })
       if (!res.ok) throw new Error('request failed')
       setStatus('sent')
+      onSent?.({ name: payload.name, mode: payload.mode, date: payload.date, time: payload.time })
       form.reset()
     } catch {
       setFallbackHref(mailtoFallback(g))
@@ -76,6 +84,8 @@ export default function ConsultationForm() {
   const labelCls = 'block text-[0.72rem] font-semibold tracking-[0.04em] uppercase text-[var(--ink-3)] mb-2'
 
   if (status === 'sent') {
+    // Parent owns the success UI when it wants to (e.g. to span a wider layout area).
+    if (onSent) return null
     return (
       <FadeIn direction="none" className="border border-[var(--border)] rounded-card p-10 bg-[var(--section)] flex flex-col items-center text-center gap-3">
         <CheckCircle2 size={36} className="text-[var(--accent)]" aria-hidden="true" />
