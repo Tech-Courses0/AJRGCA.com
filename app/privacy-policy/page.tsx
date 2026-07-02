@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
             <h2>2. Information We Collect</h2>
             <p>We may collect the following personal information:</p>
             <ul>
-              <li><strong>Contact information:</strong> Name, email address, phone number, when you contact us via email, WhatsApp, or any contact form.</li>
+              <li><strong>Contact information:</strong> Name, email address, phone number, when you contact us via email, WhatsApp, or any contact form. Contact form submissions are retained in a secure database as a record of your enquiry, in addition to being emailed to our team.</li>
               <li><strong>Business information:</strong> Company name, designation, nature of business requirements, shared voluntarily by you for the purpose of a professional enquiry.</li>
               <li><strong>Usage data:</strong> Technical information such as browser type, IP address, and pages visited, collected automatically when you use this website.</li>
             </ul>

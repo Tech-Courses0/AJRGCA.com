@@ -229,7 +229,11 @@ Q29. When someone fills the "Contact Us" form, how should it reach you?
        (b) It lands directly in your inbox automatically (recommended — we
            set this up, with spam protection).
      Which do you prefer? (a / b)
-     Your answer: ____________________
+     Your answer: (b) — done. Wired to Resend for delivery + a Postgres
+     audit log, with honeypot spam protection. Remaining: verify ajrgca.com's
+     domain in Resend (DNS record at the registrar) and provision the
+     Postgres store from the Vercel dashboard — both are one-time manual
+     steps outside this codebase.
 
      (The remaining setup items — website hosting, visitor analytics, and
      pointing the ajrgca.com address to the site — are handled on our side.

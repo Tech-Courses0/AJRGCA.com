@@ -4,43 +4,70 @@ import { useState } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import { site } from '@/config/site'
 
-/**
- * Consultation request form — richer than the general enquiry form: it also
- * captures phone, business type, service area, preferred mode and timing so a
- * partner can be matched and a slot confirmed.
- *
- * Uses a mailto: action so it works with no backend on day one.
- * TODO (see TODO.txt): wire to a proper form service (Resend / Formspree) for
- * inbox delivery, spam protection, and DPDP-compliant consent logging.
- */
-export default function ConsultationForm() {
-  const [sent, setSent] = useState(false)
+type Status = 'idle' | 'sending' | 'sent' | 'error'
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+function mailtoFallback(g: (k: string) => string) {
+  const name = g('name')
+  const subject = encodeURIComponent(`Consultation request — ${name || 'New request'}`)
+  const body = encodeURIComponent(
+    [
+      `Name: ${name}`,
+      `Organisation: ${g('organisation')}`,
+      `Email: ${g('email')}`,
+      `Phone: ${g('phone')}`,
+      `Business type: ${g('businessType')}`,
+      `Service area: ${g('serviceArea')}`,
+      `Preferred mode: ${g('mode')}`,
+      `Preferred date: ${g('date')}`,
+      `Preferred time: ${g('time')}`,
+      '',
+      'Requirement:',
+      g('message'),
+    ].join('\n')
+  )
+  return `mailto:${site.email}?subject=${subject}&body=${body}`
+}
+
+export default function ConsultationForm() {
+  const [status, setStatus] = useState<Status>('idle')
+  const [fallbackHref, setFallbackHref] = useState('')
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const d = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const d = new FormData(form)
     const g = (k: string) => String(d.get(k) || '').trim()
 
-    const name = g('name')
-    const subject = encodeURIComponent(`Consultation request — ${name || 'New request'}`)
-    const body = encodeURIComponent(
-      [
-        `Name: ${name}`,
-        `Organisation: ${g('organisation')}`,
-        `Email: ${g('email')}`,
-        `Phone: ${g('phone')}`,
-        `Business type: ${g('businessType')}`,
-        `Service area: ${g('serviceArea')}`,
-        `Preferred mode: ${g('mode')}`,
-        `Preferred date: ${g('date')}`,
-        `Preferred time: ${g('time')}`,
-        '',
-        'Requirement:',
-        g('message'),
-      ].join('\n')
-    )
-    window.location.href = `mailto:${site.email}?subject=${subject}&body=${body}`
-    setSent(true)
+    const payload = {
+      formType: 'consultation' as const,
+      name: g('name'),
+      organisation: g('organisation'),
+      email: g('email'),
+      phone: g('phone'),
+      businessType: g('businessType'),
+      serviceArea: g('serviceArea'),
+      mode: g('mode'),
+      date: g('date'),
+      time: g('time'),
+      message: g('message'),
+      consent: d.get('consent') === 'on',
+      website: g('website'),
+    }
+
+    setStatus('sending')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('request failed')
+      setStatus('sent')
+      form.reset()
+    } catch {
+      setFallbackHref(mailtoFallback(g))
+      setStatus('error')
+    }
   }
 
   const field =
@@ -130,8 +157,14 @@ export default function ConsultationForm() {
         <textarea id="bk-message" name="message" required rows={4} className={field} placeholder="A few lines about your requirement helps us assign the right partner." />
       </div>
 
-      <label className="flex items-start gap-2.5 text-[0.76rem] text-[var(--ink-3)] leading-relaxed">
-        <input type="checkbox" required className="mt-0.5 accent-[var(--accent)]" />
+      {/* Honeypot — hidden from sighted/keyboard users, visible to basic bots */}
+      <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="bk-website">Website</label>
+        <input id="bk-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
+      <label htmlFor="bk-consent" className="flex items-start gap-2.5 text-[0.76rem] text-[var(--ink-3)] leading-relaxed">
+        <input id="bk-consent" name="consent" type="checkbox" required className="mt-0.5 accent-[var(--accent)]" />
         <span>
           I consent to AJRG and Associates processing the details above to respond to and arrange my consultation, in line with the{' '}
           <a href="/privacy-policy" className="text-[var(--accent-dark)] underline">Privacy Policy</a>.
@@ -140,15 +173,22 @@ export default function ConsultationForm() {
 
       <button
         type="submit"
-        className="group inline-flex items-center justify-center gap-2 bg-[var(--ink)] text-white text-[0.78rem] font-semibold tracking-[0.08em] uppercase px-7 py-3.5 rounded-md hover:bg-[var(--royal)] transition-colors duration-200 w-full sm:w-auto"
+        disabled={status === 'sending'}
+        className="group inline-flex items-center justify-center gap-2 bg-[var(--ink)] text-white text-[0.78rem] font-semibold tracking-[0.08em] uppercase px-7 py-3.5 rounded-md hover:bg-[var(--royal)] transition-colors duration-200 w-full sm:w-auto disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Request Consultation <CalendarCheck size={15} aria-hidden="true" />
+        {status === 'sending' ? 'Sending…' : 'Request Consultation'} <CalendarCheck size={15} aria-hidden="true" />
       </button>
 
       <p className="text-[0.72rem] text-[var(--ink-4)] leading-relaxed" aria-live="polite">
-        {sent
-          ? 'Your email client should now open with your request — please review and send. We will confirm a slot within one business day.'
-          : `Submitting opens your email client to send your request to ${site.email}. We typically confirm a slot within one business day.`}
+        {status === 'sent' && 'Thank you — your request has been sent. We will confirm a slot within one business day.'}
+        {status === 'error' && (
+          <>
+            Something went wrong sending your request. Please{' '}
+            <a href={fallbackHref} className="text-[var(--accent-dark)] underline">email us directly</a> instead.
+          </>
+        )}
+        {(status === 'idle' || status === 'sending') &&
+          'Submitting sends your request to our team. We typically confirm a slot within one business day.'}
       </p>
     </form>
   )
