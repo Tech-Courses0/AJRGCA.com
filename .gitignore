@@ -29,6 +29,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local image-upload fallback when no Blob store is configured (see app/api/admin/upload)
+/public/uploads/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -53,3 +56,6 @@ src/lib/impeccable/__runtime.js
 src/lib/impeccable/[0-9a-f]*/
 # impeccable-live-ignore-end
 .env*
+
+# graphify knowledge-graph output (generated, ~6MB) — kept local
+/graphify-out/

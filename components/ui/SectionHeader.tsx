@@ -1,9 +1,9 @@
 import clsx from 'clsx'
 
 interface SectionHeaderProps {
-  label: string
+  label: React.ReactNode
   title: React.ReactNode
-  subtitle?: string
+  subtitle?: React.ReactNode
   centered?: boolean
   light?: boolean
 }

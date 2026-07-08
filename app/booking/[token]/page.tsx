@@ -2,6 +2,7 @@ import { Clock, CalendarClock, CheckCircle2, XCircle } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getBookingByClientToken } from '@/lib/bookings'
+import { site } from '@/config/site'
 import ClientBookingResponse from '@/components/sections/ClientBookingResponse'
 
 export default async function ClientBookingPage({ params }: { params: Promise<{ token: string }> }) {
@@ -45,7 +46,7 @@ export default async function ClientBookingPage({ params }: { params: Promise<{ 
                 <Clock size={32} className="text-[var(--accent)]" aria-hidden="true" />
                 <h2 className="font-serif-display font-normal text-[1.2rem] text-[var(--ink)]">Pending</h2>
                 <p className="text-[0.88rem] text-[var(--ink-3)]">
-                  We will confirm a slot within one business day. You requested{' '}
+                  We will confirm a slot within {site.responseTime}. You requested{' '}
                   <strong className="text-[var(--ink-2)]">{booking.requested_date || 'no specific date'} · {booking.requested_time || 'any time'} ({booking.mode || 'video call'})</strong>.
                 </p>
               </div>

@@ -2,10 +2,10 @@ import Button from '@/components/ui/Button'
 
 interface CTASectionProps {
   title: React.ReactNode
-  subtitle: string
-  primaryLabel?: string
+  subtitle: React.ReactNode
+  primaryLabel?: React.ReactNode
   primaryHref?: string
-  secondaryLabel?: string
+  secondaryLabel?: React.ReactNode
   secondaryHref?: string
 }
 

@@ -94,7 +94,7 @@ export default function ConsultationForm({ onSent }: Props) {
         <CheckCircle2 size={36} className="text-[var(--accent)]" aria-hidden="true" />
         <h3 className="font-serif-display font-normal text-[1.3rem] text-[var(--ink)]">Request received</h3>
         <p className="text-[0.88rem] text-[var(--ink-3)]" aria-live="polite">
-          We will confirm a slot within one business day.
+          We will confirm a slot within {site.responseTime}.
         </p>
       </FadeIn>
     )
@@ -212,7 +212,7 @@ export default function ConsultationForm({ onSent }: Props) {
             <a href={fallbackHref} className="text-[var(--accent-dark)] underline">email us directly</a> instead.
           </>
         ) : (
-          'Submitting sends your request to our team. We typically confirm a slot within one business day.'
+          `Submitting sends your request to our team. We typically confirm a slot within ${site.responseTime}.`
         )}
       </p>
     </form>

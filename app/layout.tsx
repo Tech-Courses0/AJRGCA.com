@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, Inter } from 'next/font/google'
 import './globals.css'
+import ThemeStyle from '@/components/theme/ThemeStyle'
+import { getLiveContent } from '@/lib/content'
 
 /* Royal Minimalist type pairing — self-hosted via next/font (zero CLS) */
 const playfair = Playfair_Display({
@@ -69,17 +71,26 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { site, theme } = await getLiveContent()
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" href="/icon.png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {site.favicon ? (
+          <link rel="icon" href={site.favicon} />
+        ) : (
+          <>
+            <link rel="icon" href="/favicon.ico" sizes="any" />
+            <link rel="icon" type="image/png" href="/icon.png" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          </>
+        )}
+        {/* Runtime theme overrides (no-op on the default palette) */}
+        <ThemeStyle theme={theme} />
       </head>
       <body>{children}</body>
     </html>

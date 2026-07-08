@@ -1,27 +1,34 @@
+'use client'
+
 import Link from 'next/link'
-import { MapPin, Mail } from 'lucide-react'
-import { site, registeredOfficeText } from '@/config/site'
+import { MapPin, Mail, Linkedin, Twitter, Facebook, Instagram, Youtube, Github, Globe, type LucideIcon } from 'lucide-react'
+import { formatOffice } from '@/config/site'
+import { footerDefault, defaultSiteBrand } from '@/data/chrome'
+import EditableText from '@/components/editable/EditableText'
+import EditableRichText from '@/components/editable/EditableRichText'
+import EditableRepeater from '@/components/editable/EditableRepeater'
+import { useEditor } from '@/components/editable/EditorContext'
+import type { SiteContent, FooterLink, SocialLink } from '@/types/content'
 
-const services = [
-  'Audit & Assurance',
-  'Tax & Regulatory Compliance',
-  'Strategic & Business Advisory',
-  'Secretarial & ROC Compliance',
-  'IBC Advisory',
-  'Succession Planning',
-]
+const SOCIAL_ICONS: Record<string, LucideIcon> = {
+  linkedin: Linkedin,
+  twitter: Twitter,
+  x: Twitter,
+  facebook: Facebook,
+  instagram: Instagram,
+  youtube: Youtube,
+  github: Github,
+  mail: Mail,
+  globe: Globe,
+}
 
-const company = ['About Us', 'Approach', 'Industries', 'Knowledge Center', 'Contact']
-const companyHrefs = ['/about', '/approach', '/industries', '/insights', '/contact']
+export default function Footer({ content }: { content?: SiteContent }) {
+  const { isEditing, content: liveContent } = useEditor()
+  const active = isEditing && liveContent ? liveContent : content
+  const site = active?.site ?? defaultSiteBrand
+  const footer = active?.footer ?? footerDefault
+  const social = site.social ?? []
 
-const legal = [
-  { label: 'Privacy Policy', href: '/privacy-policy' },
-  { label: 'Terms & Conditions', href: '/terms' },
-  { label: 'Disclaimer', href: '/disclaimer' },
-  { label: 'Cookie Policy', href: '/cookies' },
-]
-
-export default function Footer() {
   return (
     <footer className="on-dark bg-[var(--ink)] pt-16 pb-8 px-8">
       <div className="max-w-8xl mx-auto">
@@ -29,93 +36,101 @@ export default function Footer() {
           {/* Brand + statutory identity */}
           <div>
             <div className="font-syne font-extrabold text-xl tracking-[0.08em] text-white">
-              AJRG<span className="gold-text">CA</span>
+              {site.logoImage ? (
+                <img src={site.logoImage} alt={site.logoAlt || site.wordmark} className="h-7 w-auto object-contain" />
+              ) : (
+                <span>{site.wordmark}</span>
+              )}
             </div>
             <span className="gold-rule mt-4" />
             <p className="text-[0.8rem] text-white/45 mt-3 leading-relaxed">
               {site.legalName}. {site.tagline}
             </p>
 
-            {/* Firm Registration Number — ICAI required */}
             <p className="text-[0.72rem] text-white/35 mt-4">
-              <span className="text-white/50">Firm Registration No. (FRN):</span> {site.frn}
+              <span className="text-white/50"><EditableRichText path="footer.frnLabel" value={footer.frnLabel} as="span" /></span> {site.frn}
             </p>
 
-            {/* Registered office — ICAI required */}
             <p className="flex items-start gap-1.5 text-[0.72rem] text-white/35 mt-2 leading-relaxed">
               <MapPin size={11} className="mt-0.5 flex-shrink-0 text-[var(--accent)]" aria-hidden="true" />
               <span>
-                <span className="text-white/50">Registered Office:</span> {registeredOfficeText()}
+                <span className="text-white/50"><EditableRichText path="footer.registeredOfficeLabel" value={footer.registeredOfficeLabel} as="span" /></span> {formatOffice(site.registeredOffice)}
               </span>
             </p>
             <p className="text-[0.72rem] text-white/30 mt-2">{site.citiesLine}</p>
+
+            {/* Social links */}
+            {social.length > 0 && (
+              <div className="flex items-center gap-3 mt-5">
+                {social.map((s: SocialLink, i) => {
+                  const Icon = SOCIAL_ICONS[s.platform?.toLowerCase()] ?? Globe
+                  return (
+                    <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.platform} className="text-white/45 hover:text-[var(--accent)] transition-colors">
+                      <Icon size={16} />
+                    </a>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Services */}
-          <div>
-            <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
-              Services
+          {/* Content columns (Services, Firm) */}
+          {footer.columns.map((col, ci) => (
+            <div key={ci}>
+              <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
+                <EditableRichText path={`footer.columns.${ci}.heading`} value={col.heading} as="span" />
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                <EditableRepeater<FooterLink>
+                  path={`footer.columns.${ci}.links`}
+                  items={col.links}
+                  newItem={() => ({ label: 'New link', href: '/' })}
+                  addLabel="Add link"
+                  renderItem={(l, li) => (
+                    <li key={li}>
+                      <Link href={l.href} className="text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white">
+                        <EditableText
+                          path={`footer.columns.${ci}.links.${li}.label`}
+                          value={l.label}
+                          as="span"
+                          hrefPath={`footer.columns.${ci}.links.${li}.href`}
+                          hrefValue={l.href}
+                        />
+                      </Link>
+                    </li>
+                  )}
+                />
+              </ul>
             </div>
-            <ul className="flex flex-col gap-2.5">
-              {services.map((s) => (
-                <li key={s}>
-                  <Link
-                    href="/services"
-                    className="text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white"
-                  >
-                    {s}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
-              Firm
-            </div>
-            <ul className="flex flex-col gap-2.5">
-              {company.map((c, i) => (
-                <li key={c}>
-                  <Link
-                    href={companyHrefs[i]}
-                    className="text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white"
-                  >
-                    {c}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          ))}
 
           {/* Connect + Legal */}
           <div>
             <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-5">
-              Connect
+              <EditableRichText path="footer.connectHeading" value={footer.connectHeading} as="span" />
             </div>
             <ul className="flex flex-col gap-2.5 mb-6">
               <li>
-                <a
-                  href={`mailto:${site.email}`}
-                  className="flex items-center gap-1.5 text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white"
-                >
+                <a href={`mailto:${site.email}`} className="flex items-center gap-1.5 text-[0.82rem] text-white/55 no-underline transition-colors duration-200 hover:text-white">
                   <Mail size={12} className="text-[var(--accent)]" aria-hidden="true" />
                   {site.email}
                 </a>
               </li>
             </ul>
             <div className="font-syne font-bold text-[0.72rem] tracking-[0.1em] uppercase text-white/40 mb-3">
-              Legal
+              <EditableRichText path="footer.legalHeading" value={footer.legalHeading} as="span" />
             </div>
             <ul className="flex flex-col gap-2">
-              {legal.map((l) => (
-                <li key={l.label}>
-                  <Link
-                    href={l.href}
-                    className="text-[0.78rem] text-white/45 no-underline transition-colors duration-200 hover:text-white"
-                  >
-                    {l.label}
+              {footer.legalLinks.map((l, li) => (
+                <li key={li}>
+                  <Link href={l.href} className="text-[0.78rem] text-white/45 no-underline transition-colors duration-200 hover:text-white">
+                    <EditableText
+                      path={`footer.legalLinks.${li}.label`}
+                      value={l.label}
+                      as="span"
+                      hrefPath={`footer.legalLinks.${li}.href`}
+                      hrefValue={l.href}
+                    />
                   </Link>
                 </li>
               ))}
@@ -126,14 +141,16 @@ export default function Footer() {
         {/* DPDP Act 2023 notice */}
         <div className="py-5 border-b border-white/10">
           <p className="text-[0.7rem] text-white/30 leading-relaxed max-w-4xl">
-            <strong className="text-white/40">Data Protection:</strong> {site.dpdpNote}
+            <strong className="text-white/40"><EditableRichText path="footer.dpdpLabel" value={footer.dpdpLabel} as="span" /></strong>{' '}
+            {site.dpdpNote}
           </p>
         </div>
 
-        {/* Professional disclaimer — ICAI required */}
+        {/* Professional disclaimer */}
         <div className="py-5 border-b border-white/10">
           <p className="text-[0.7rem] text-white/25 leading-relaxed max-w-4xl">
-            <strong className="text-white/35">Professional Disclaimer:</strong> {site.disclaimer}
+            <strong className="text-white/35"><EditableRichText path="footer.disclaimerLabel" value={footer.disclaimerLabel} as="span" /></strong>{' '}
+            {site.disclaimer}
           </p>
         </div>
 
@@ -142,8 +159,8 @@ export default function Footer() {
             © {new Date().getFullYear()} {site.legalName}. All rights reserved.
           </p>
           <div className="flex gap-4">
-            {legal.map((l) => (
-              <Link key={l.label} href={l.href} className="text-[0.68rem] text-white/25 no-underline hover:text-white/50 transition-colors">
+            {footer.legalLinks.map((l, li) => (
+              <Link key={li} href={l.href} className="text-[0.68rem] text-white/25 no-underline hover:text-white/50 transition-colors">
                 {l.label}
               </Link>
             ))}

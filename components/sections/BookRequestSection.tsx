@@ -5,6 +5,7 @@ import { Clock, ShieldCheck, FileText, Video, CheckCircle2, Calendar } from 'luc
 import ConsultationForm, { ConsultationSummary } from './ConsultationForm'
 import ExistingBookingBanner from './ExistingBookingBanner'
 import FadeIn from '@/components/ui/FadeIn'
+import { site } from '@/config/site'
 
 const expect = [
   { icon: Clock, text: 'A focused discussion, partner-led.' },
@@ -24,7 +25,7 @@ export default function BookRequestSection() {
         <CheckCircle2 size={40} className="text-[var(--accent-light)]" aria-hidden="true" />
         <h2 className="font-serif-display font-normal text-[1.5rem] text-white">Request received, {summary.name.split(' ')[0]}.</h2>
         <p className="text-white/75 text-[0.9rem] max-w-md">
-          We will confirm a slot within one business day — you will receive an email once it is confirmed.
+          We will confirm a slot within {site.responseTime} — you will receive an email once it is confirmed.
         </p>
         {(summary.date || summary.time || summary.mode) && (
           <div className="flex items-center gap-2 text-white/60 text-[0.8rem] mt-2 pt-4 border-t border-white/10">

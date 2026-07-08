@@ -37,6 +37,10 @@ export const site = {
 
   /* ── Contact ── */
   email: 'contact@ajrgca.com',
+  /* Turnaround promise shown on the booking/consultation flows. Single source —
+     change here and it updates every "we'll confirm within …" line (forms, the
+     /book page, the confirmation email, and the booking-status page). */
+  responseTime: 'one business day',
   /* Booking — paste a Cal.com / Calendly embed URL here to switch on live
      slot scheduling on /book. Leave empty to show the request form plus a
      "we'll confirm within one business day" fallback. */
@@ -54,15 +58,16 @@ export const site = {
   presence: 'Serving clients across India — strong regional expertise with a global outlook.',
 } as const
 
-type Office = { line1: string; line2: string; city: string; state: string; pin: string; country: string }
+export type Office = { line1: string; line2: string; city: string; state: string; pin: string; country: string }
 
-function officeText(o: Office): string {
+export function formatOffice(o: Office): string {
   // Drop any unfilled placeholder fragments (e.g. PIN) so the line stays clean.
   const pin = o.pin.startsWith('TODO') ? '' : o.pin
   return [o.line1, o.line2, [o.city, o.state, pin].filter(Boolean).join(', '), o.country]
     .filter(Boolean)
     .join(', ')
 }
+const officeText = formatOffice
 
 /* Formatted, human-readable registered office / branch */
 export function registeredOfficeText(): string {

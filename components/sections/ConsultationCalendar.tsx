@@ -21,7 +21,7 @@ export default function ConsultationCalendar() {
         </p>
         <p className="text-[0.85rem] text-[var(--ink-3)] leading-relaxed max-w-md mx-auto">
           For now, share your preferred date and time in the request form above —
-          we will confirm your consultation within one business day.
+          we will confirm your consultation within {site.responseTime}.
         </p>
       </div>
     )

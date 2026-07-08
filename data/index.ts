@@ -58,6 +58,7 @@ export const partners: Partner[] = [
       'A founder of AJRG (and of Digibuks), he partners with businesses to drive profitability, strengthen controls, and enable sustainable growth through disciplined financial strategy.',
     ],
     icaiNote: 'Member, Institute of Chartered Accountants of India (ICAI). Membership No.: TODO — to be confirmed before launch.',
+    photo: null,
   },
   {
     name: 'Rishu Goyal',
@@ -70,6 +71,7 @@ export const partners: Partner[] = [
       'A founder of AJRG, he specialises in corporate structuring, M&A, valuation, insolvency & IBC advisory, strategic finance, and investment advisory — helping promoters navigate transactions and complex resolutions.',
     ],
     icaiNote: 'Member, Institute of Chartered Accountants of India (ICAI). Membership No.: TODO — to be confirmed before launch.',
+    photo: null,
   },
 ]
 

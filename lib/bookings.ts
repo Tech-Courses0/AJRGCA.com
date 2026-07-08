@@ -79,7 +79,7 @@ export async function createBooking(payload: BookingPayload, origin: string) {
     text: [
       `Hi ${payload.name},`,
       '',
-      'Thank you for your consultation request. We will confirm a slot within one business day.',
+      `Thank you for your consultation request. We will confirm a slot within ${site.responseTime}.`,
       '',
       `Track the status of your request here: ${origin}/booking/${client_token}`,
     ].join('\n'),

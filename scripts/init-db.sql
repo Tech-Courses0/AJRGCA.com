@@ -56,3 +56,14 @@ create table if not exists google_tokens (
   refresh_token text not null,
   connected_at timestamptz not null default now()
 );
+
+-- Visual editor content store. Two rows: 'draft' (what the editor reads/writes,
+-- autosaved on every edit) and 'live' (what the public site reads). Publishing
+-- copies draft -> live. If this table/row is empty, the app falls back to the
+-- defaults built from data/*.ts + config/site.ts (see lib/content.ts) — so the
+-- site works with zero DB config, same as everything else here.
+create table if not exists site_content (
+  id text primary key check (id in ('draft', 'live')),
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);

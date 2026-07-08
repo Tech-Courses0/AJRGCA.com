@@ -27,6 +27,8 @@ export interface Insight {
   bgColor: string
   textColor: string
   label: string
+  image?: string | null
+  imageAlt?: string
 }
 
 export interface Stat {
@@ -52,9 +54,13 @@ export interface ComplianceDeadline {
 
 /* ── Knowledge Center articles (ISR) ── */
 export interface ArticleBlock {
-  type: 'paragraph' | 'heading' | 'list'
+  type: 'paragraph' | 'heading' | 'list' | 'section'
   text?: string
   items?: string[]
+  /** `type: 'section'` only — the clause number label (e.g. "12."). Number +
+   *  content live in one block so a numbered clause drags as a single unit
+   *  instead of a heading block plus N separate paragraph blocks. */
+  number?: string
 }
 
 export interface Article {
@@ -69,6 +75,10 @@ export interface Article {
   bgColor: string
   textColor: string
   body: ArticleBlock[]
+  /** Optional real photo for the card/hero — falls back to the colored
+   *  label tile (bgColor/textColor/label) when unset. */
+  image?: string | null
+  imageAlt?: string
 }
 
 /* ── Our Team ── */
@@ -79,6 +89,8 @@ export interface TeamMember {
   bio?: string
   /** Path under /public once a real photo is supplied; null shows a placeholder. */
   photo: string | null
+  /** Optional alt-text override; falls back to `name` when unset. */
+  photoAlt?: string
 }
 
 /* ── Team / partner bios ── */
@@ -90,4 +102,8 @@ export interface Partner {
   expertise: string[]
   bio: string[]
   icaiNote: string
+  /** Path under /public once a real photo is supplied; null shows a placeholder. */
+  photo: string | null
+  /** Optional alt-text override; falls back to `name` when unset. */
+  photoAlt?: string
 }

@@ -5,24 +5,19 @@ import { ArrowLeft, CalendarDays, Clock } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CTASection from '@/components/sections/CTASection'
-import { articles, getArticle } from '@/data/articles'
+import { getLiveContent } from '@/lib/content'
+import { sanitizeHtml } from '@/lib/sanitizeHtml'
 
-/* ── Incremental Static Regeneration ──
-   Pages are statically generated at build time and transparently revalidated
-   at most once per hour, so edits to data/articles.ts go live without a full
-   redeploy. New slugs are generated on-demand on first request. */
-export const revalidate = 3600
-export const dynamicParams = true
-
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }))
-}
+// Articles are edited in the visual editor and stored in the live content row,
+// so this page reads live content on each request (same model as every other page).
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params
-  const article = getArticle(slug)
+  const { articles } = await getLiveContent()
+  const article = articles.find((a) => a.slug === slug)
   if (!article) return { title: 'Article Not Found' }
   return {
     title: article.title,
@@ -35,14 +30,15 @@ export default async function ArticlePage(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params
-  const article = getArticle(slug)
+  const content = await getLiveContent()
+  const article = content.articles.find((a) => a.slug === slug)
   if (!article) notFound()
 
-  const related = articles.filter((a) => a.slug !== slug).slice(0, 2)
+  const related = content.articles.filter((a) => a.slug !== slug).slice(0, 2)
 
   return (
     <>
-      <Navbar />
+      <Navbar content={content} />
 
       {/* ── Article hero ── */}
       <header className="on-dark pt-36 pb-14 px-8 bg-royal-wash relative overflow-hidden">
@@ -66,15 +62,27 @@ export default async function ArticlePage(
         </div>
       </header>
 
+      {article.image && (
+        <div className="px-8 -mt-8 relative">
+          <img
+            src={article.image}
+            alt={article.imageAlt || article.title}
+            className="max-w-3xl w-full mx-auto aspect-[21/9] object-cover rounded-card shadow-[var(--elev-2)]"
+          />
+        </div>
+      )}
+
       {/* ── Article body ── */}
       <article className="py-16 px-8 bg-white">
         <div className="max-w-3xl mx-auto">
           {article.body.map((block, i) => {
             if (block.type === 'heading') {
               return (
-                <h2 key={i} className="font-serif-display font-normal text-[1.5rem] text-[var(--ink)] mt-10 mb-4 leading-snug">
-                  {block.text}
-                </h2>
+                <h2
+                  key={i}
+                  className="font-serif-display font-normal text-[1.5rem] text-[var(--ink)] mt-10 mb-4 leading-snug"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.text ?? '') }}
+                />
               )
             }
             if (block.type === 'list') {
@@ -90,9 +98,11 @@ export default async function ArticlePage(
               )
             }
             return (
-              <p key={i} className="text-[1rem] text-[var(--ink-2)] leading-[1.85] mb-5">
-                {block.text}
-              </p>
+              <p
+                key={i}
+                className="text-[1rem] text-[var(--ink-2)] leading-[1.85] mb-5"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.text ?? '') }}
+              />
             )
           })}
 
@@ -136,7 +146,7 @@ export default async function ArticlePage(
         primaryLabel="Contact Us"
         primaryHref="/contact"
       />
-      <Footer />
+      <Footer content={content} />
     </>
   )
 }
