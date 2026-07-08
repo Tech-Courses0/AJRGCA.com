@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Undo2, Redo2, LogOut, Rocket, Palette, Settings, RotateCcw, Check, HelpCircle, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useEditor } from './EditorContext'
@@ -104,12 +103,16 @@ export default function EditorToolbar({ pages, activePage, onPageChange, activeP
         >
           <RotateCcw size={13} /> <span className="hidden md:inline">Discard changes</span>
         </button>
-        <Link
-          href="/api/admin/logout"
+        <button
+          type="button"
+          onClick={async () => {
+            await fetch('/api/admin/logout', { method: 'POST' })
+            window.location.href = '/admin/login'
+          }}
           className="flex items-center gap-1.5 text-[0.72rem] text-white/60 hover:text-white no-underline px-3 py-1.5"
         >
           <LogOut size={13} /> Exit
-        </Link>
+        </button>
         <button
           type="button"
           onClick={() => setConfirm('publish')}
