@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { username, secret } = await req.json().catch(() => ({ username: '', secret: '' }))
-  const expectedUsername = process.env.ADMIN_USERNAME
-  const expected = process.env.ADMIN_SECRET
+  const expectedUsername = process.env.EDITOR_USERNAME
+  const expected = process.env.EDITOR_SECRET
 
   if (!expectedUsername || !expected || username !== expectedUsername || secret !== expected) {
     return NextResponse.json({ error: 'Incorrect username or password' }, { status: 401 })
