@@ -1,9 +1,14 @@
 import CTASection from '@/components/sections/CTASection'
 import EditableRichText from '@/components/editable/EditableRichText'
+import EditableText from '@/components/editable/EditableText'
+import ColorSwatch from '@/components/editable/ColorSwatch'
+import { useLiveValue } from '@/components/editable/EditorContext'
 import type { SiteContent } from '@/types/content'
 
 export default function CTASectionBlock({ content }: { content: SiteContent }) {
   const c = content.pages.home.cta
+  const primaryColor = useLiveValue('pages.home.cta.primaryColor', c.primaryColor)
+  const secondaryColor = useLiveValue('pages.home.cta.secondaryColor', c.secondaryColor)
   return (
     <CTASection
       title={
@@ -16,10 +21,14 @@ export default function CTASectionBlock({ content }: { content: SiteContent }) {
         </>
       }
       subtitle={<EditableRichText path="pages.home.cta.subtitle" value={c.subtitle} as="span" />}
-      primaryLabel={<EditableRichText path="pages.home.cta.primaryLabel" value={c.primaryLabel} as="span" />}
+      primaryLabel={<EditableText path="pages.home.cta.primaryLabel" value={c.primaryLabel} as="span" hrefPath="pages.home.cta.primaryHref" hrefValue={c.primaryHref} />}
       primaryHref={c.primaryHref}
-      secondaryLabel={<EditableRichText path="pages.home.cta.secondaryLabel" value={c.secondaryLabel} as="span" />}
+      primaryColor={primaryColor}
+      primarySwatch={<ColorSwatch path="pages.home.cta.primaryColor" label="Button colour" />}
+      secondaryLabel={<EditableText path="pages.home.cta.secondaryLabel" value={c.secondaryLabel} as="span" hrefPath="pages.home.cta.secondaryHref" hrefValue={c.secondaryHref} />}
       secondaryHref={c.secondaryHref}
+      secondaryColor={secondaryColor}
+      secondarySwatch={<ColorSwatch path="pages.home.cta.secondaryColor" label="Button colour" />}
     />
   )
 }

@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button'
+import type { ReactNode } from 'react'
 
 interface CTASectionProps {
   title: React.ReactNode
@@ -7,6 +8,12 @@ interface CTASectionProps {
   primaryHref?: string
   secondaryLabel?: React.ReactNode
   secondaryHref?: string
+  /** Custom button backgrounds — unset keeps each button's default look. */
+  primaryColor?: string
+  secondaryColor?: string
+  /** Colour-swatch controls rendered next to each button (editor-only). */
+  primarySwatch?: ReactNode
+  secondarySwatch?: ReactNode
 }
 
 export default function CTASection({
@@ -16,6 +23,10 @@ export default function CTASection({
   primaryHref = '/book',
   secondaryLabel,
   secondaryHref,
+  primaryColor,
+  secondaryColor,
+  primarySwatch,
+  secondarySwatch,
 }: CTASectionProps) {
   return (
     <section className="relative py-28 px-8 bg-white">
@@ -30,11 +41,26 @@ export default function CTASection({
           {subtitle}
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Button href={primaryHref}>{primaryLabel}</Button>
-          {secondaryLabel && secondaryHref && (
-            <Button href={secondaryHref} variant="secondary">
-              {secondaryLabel}
+          <span className="inline-flex items-center">
+            <Button
+              href={primaryHref}
+              style={primaryColor ? { backgroundColor: primaryColor, color: '#fff', borderColor: 'transparent' } : undefined}
+            >
+              {primaryLabel}
             </Button>
+            {primarySwatch}
+          </span>
+          {secondaryLabel && secondaryHref && (
+            <span className="inline-flex items-center">
+              <Button
+                href={secondaryHref}
+                variant="secondary"
+                style={secondaryColor ? { backgroundColor: secondaryColor, color: '#fff', borderColor: 'transparent' } : undefined}
+              >
+                {secondaryLabel}
+              </Button>
+              {secondarySwatch}
+            </span>
           )}
         </div>
       </div>

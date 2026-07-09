@@ -1,8 +1,8 @@
 'use client'
 
-import { createElement, useCallback, useRef, useState, type ClipboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
+import { createElement, useCallback, useEffect, useRef, useState, type ClipboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { Bold, Italic, Underline, Link2 } from 'lucide-react'
+import { Bold, Italic, Underline, Link2, Pipette } from 'lucide-react'
 import clsx from 'clsx'
 import { useEditor } from './EditorContext'
 import { sanitizeHtml } from '@/lib/sanitizeHtml'
@@ -42,6 +42,7 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
   const { isEditing, getValue, setValue } = useEditor()
   const ref = useRef<HTMLElement | null>(null)
   const savedRange = useRef<Range | null>(null)
+  const customColorRef = useRef<HTMLInputElement>(null)
   const [dirty, setDirty] = useState(false)
   const [toolbar, setToolbar] = useState<{ top: number; left: number } | null>(null)
   const [linkOpen, setLinkOpen] = useState(false)
@@ -63,6 +64,22 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
       inited.current = true
     }
   }, [])
+
+  // A drag-selection's mouseup often lands outside this element (it's usually
+  // a short span of text, easy to overshoot while dragging) — the local
+  // onMouseUp prop below only fires when the event target is this element or
+  // a descendant, so an overshot drag never showed the toolbar (only
+  // double-click did, since browsers keep that selection's mouseup on-target).
+  // A document-level listener catches the mouseup wherever it lands; the ref
+  // containment check in updateToolbarPosition keeps it scoped to selections
+  // that are actually inside this field.
+  useEffect(() => {
+    if (!dirty) return
+    function onDocMouseUp() { updateToolbarPosition() }
+    document.addEventListener('mouseup', onDocMouseUp)
+    return () => document.removeEventListener('mouseup', onDocMouseUp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty])
 
   if (!isEditing) {
     const html = sanitizeHtml(value)
@@ -90,6 +107,7 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
       setToolbar(null)
       return
     }
+    if (!ref.current || !sel.anchorNode || !ref.current.contains(sel.anchorNode)) return
     const rect = sel.getRangeAt(0).getBoundingClientRect()
     if (rect.width === 0 && rect.height === 0) {
       setToolbar(null)
@@ -112,6 +130,29 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
       document.execCommand('foreColor', false, color)
       setDirty(true)
     }
+  }
+
+  // Native <input type="color"> steals focus (and the live selection) the
+  // moment its picker opens — same problem as the link editor below, same
+  // fix: capture the Range first, restore it once a colour comes back.
+  function openCustomColor(e: ReactMouseEvent) {
+    e.preventDefault()
+    const sel = window.getSelection()
+    savedRange.current = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null
+    customColorRef.current?.click()
+  }
+
+  function applyCustomColor(color: string) {
+    if (savedRange.current && ref.current) {
+      ref.current.focus()
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(savedRange.current)
+      document.execCommand('foreColor', false, color)
+      const html = sanitizeHtml(ref.current.innerHTML)
+      setValue(path, html)
+    }
+    savedRange.current = null
   }
 
   function openLinkEditor(e: ReactMouseEvent) {
@@ -183,6 +224,21 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
               style={{ backgroundColor: c.value }}
             />
           ))}
+          <button
+            type="button"
+            title="Custom colour"
+            onMouseDown={openCustomColor}
+            className="w-5 h-5 rounded-full border border-black/10 flex-shrink-0 flex items-center justify-center text-[var(--ink-3)]"
+            style={{ background: 'conic-gradient(from 90deg, red, yellow, lime, cyan, blue, magenta, red)' }}
+          >
+            <Pipette size={10} className="text-white drop-shadow-[0_0_1px_rgba(0,0,0,0.8)]" />
+          </button>
+          <input
+            ref={customColorRef}
+            type="color"
+            className="sr-only"
+            onChange={(e) => applyCustomColor(e.target.value)}
+          />
           {linkOpen && (
             <span
               className="absolute top-full left-0 mt-1 w-[240px] rounded-md border border-[var(--border)] bg-white shadow-xl p-2 flex items-center gap-1.5"

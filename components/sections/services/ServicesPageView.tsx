@@ -8,6 +8,7 @@ import EditableText from '@/components/editable/EditableText'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
 import IconField from '@/components/editable/IconField'
+import ColorSwatch from '@/components/editable/ColorSwatch'
 import { useEditor } from '@/components/editable/EditorContext'
 import { getIcon } from '@/lib/icons'
 import type { SiteContent } from '@/types/content'
@@ -28,6 +29,11 @@ export default function ServicesPageView({ content }: { content: SiteContent }) 
   const { services } = content
   const p = content.pages.services
   const indexed = services.map((s, i) => ({ s, i }))
+  // Only merge the static prop in when not editing — `??` against the live
+  // value would resurrect a stale colour after an intentional reset (which
+  // writes `undefined`); see useLiveValue's doc comment for the full reason.
+  const ctaPrimaryColor = isEditing ? (getValue('pages.services.cta.primaryColor') as string | undefined) : p.cta.primaryColor
+  const ctaSecondaryColor = isEditing ? (getValue('pages.services.cta.secondaryColor') as string | undefined) : p.cta.secondaryColor
 
   return (
     <>
@@ -231,8 +237,12 @@ export default function ServicesPageView({ content }: { content: SiteContent }) 
         subtitle={<EditableRichText path="pages.services.cta.subtitle" value={p.cta.subtitle} as="span" />}
         primaryLabel={<EditableText path="pages.services.cta.primaryLabel" value={p.cta.primaryLabel} as="span" hrefPath="pages.services.cta.primaryHref" hrefValue={p.cta.primaryHref} />}
         primaryHref={p.cta.primaryHref}
+        primaryColor={ctaPrimaryColor}
+        primarySwatch={<ColorSwatch path="pages.services.cta.primaryColor" label="Button colour" />}
         secondaryLabel={<EditableText path="pages.services.cta.secondaryLabel" value={p.cta.secondaryLabel} as="span" hrefPath="pages.services.cta.secondaryHref" hrefValue={p.cta.secondaryHref} />}
         secondaryHref={p.cta.secondaryHref}
+        secondaryColor={ctaSecondaryColor}
+        secondarySwatch={<ColorSwatch path="pages.services.cta.secondaryColor" label="Button colour" />}
       />
       <Footer content={content} />
     </>

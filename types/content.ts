@@ -84,6 +84,9 @@ export interface HeroContent {
   primaryHref: string
   secondaryLabel: string
   secondaryHref: string
+  /** Custom button background, e.g. '#6830a4'. Unset = today's default look. */
+  primaryColor?: string
+  secondaryColor?: string
 }
 
 /** Interactive compliance-calendar section: editable header + an extendible
@@ -182,21 +185,31 @@ export interface BentoPillar {
   href: string
   feature?: boolean
   className: string
+  /** Custom card background, e.g. '#6830a4'. Unset = today's look (white,
+   *  except the feature card which stays its default purple gradient). */
+  bg?: string
 }
+/** Shared shape for every page's closing CTA block — two buttons whose
+ *  background colour the owner can override per-button (unset = today's
+ *  default look), same colour-swatch pattern as the repeater boxes. */
+export interface CTAFields {
+  titleLead: string
+  titleAccent: string
+  subtitle: string
+  primaryLabel: string
+  primaryHref: string
+  secondaryLabel: string
+  secondaryHref: string
+  primaryColor?: string
+  secondaryColor?: string
+}
+
 export interface HomePageContent {
   bentoHeader: { label: string; title: string; sideNote: string }
   bentoDeepDiveLabel: string
   bentoPillars: BentoPillar[]
   standards: { label: string; title: string; items: { title: string; body: string }[] }
-  cta: {
-    titleLead: string
-    titleAccent: string
-    subtitle: string
-    primaryLabel: string
-    primaryHref: string
-    secondaryLabel: string
-    secondaryHref: string
-  }
+  cta: CTAFields
 }
 
 export interface PageHero {
@@ -211,15 +224,7 @@ export interface ServicesPageContent {
   categories: { id: string; label: string; blurb: string }[]
   keyAreasLabel: string
   approachPointer: { label: string; title: string; ctaLabel: string; ctaHref: string }
-  cta: {
-    titleLead: string
-    titleAccent: string
-    subtitle: string
-    primaryLabel: string
-    primaryHref: string
-    secondaryLabel: string
-    secondaryHref: string
-  }
+  cta: CTAFields
 }
 
 export interface ApproachPageContent {
@@ -228,15 +233,7 @@ export interface ApproachPageContent {
   methodology: { num: string; title: string; desc: string }[]
   focus: { label: string; heading: string; headingAccent: string; footerLocations: string; commitments: string[] }
   whyItMatters: { label: string; title: string; items: { title: string; desc: string }[] }
-  cta: {
-    titleLead: string
-    titleAccent: string
-    subtitle: string
-    primaryLabel: string
-    primaryHref: string
-    secondaryLabel: string
-    secondaryHref: string
-  }
+  cta: CTAFields
 }
 
 export interface IndustriesPageContent {
@@ -304,6 +301,7 @@ export interface AboutPageContent {
     subtitle: string
     primaryLabel: string
     primaryHref: string
+    primaryColor?: string
   }
 }
 

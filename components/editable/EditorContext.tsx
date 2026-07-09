@@ -44,6 +44,24 @@ export function useEditor(): EditorContextValue {
   }
 }
 
+/** Reads a field live from the editor's in-progress draft. Needed for any
+ *  plain-JS read of a content field used outside an Editable* component
+ *  (e.g. `hero.color ? {...} : undefined` driving a style prop) — those
+ *  components sync themselves internally, but a bare field read here would
+ *  otherwise lag one publish+reload behind an edit.
+ *
+ *  `fallback` (the static server-rendered value) is only used outside the
+ *  editor — NOT as a `?? ` merge with the live value. The live draft is
+ *  seeded from the full server content at mount, so it already holds the
+ *  right value for every untouched field; falling back on `undefined` would
+ *  make an intentional "reset to default" (which writes `undefined`)
+ *  indistinguishable from "never touched" and resurrect the stale value. */
+export function useLiveValue<T>(path: string, fallback: T): T {
+  const { isEditing, getValue } = useEditor()
+  if (!isEditing) return fallback
+  return getValue(path) as T
+}
+
 const AUTOSAVE_DELAY_MS = 800
 
 export function EditorProvider({ initialContent, children }: { initialContent: SiteContent; children: ReactNode }) {

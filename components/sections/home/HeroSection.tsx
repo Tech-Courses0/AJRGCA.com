@@ -4,10 +4,14 @@ import clsx from 'clsx'
 import EditableText from '@/components/editable/EditableText'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
+import ColorSwatch from '@/components/editable/ColorSwatch'
+import { useLiveValue } from '@/components/editable/EditorContext'
 import type { SiteContent, HeroFact } from '@/types/content'
 
 export default function HeroSection({ content }: { content: SiteContent }) {
   const { hero } = content
+  const primaryColor = useLiveValue('hero.primaryColor', hero.primaryColor)
+  const secondaryColor = useLiveValue('hero.secondaryColor', hero.secondaryColor)
   return (
     <section className="relative min-h-screen flex items-center pt-16 bg-[var(--cream)] overflow-hidden">
       <span className="bg-architectural absolute inset-0 opacity-60 pointer-events-none" aria-hidden="true" />
@@ -49,12 +53,25 @@ export default function HeroSection({ content }: { content: SiteContent }) {
           />
 
           <div className="flex items-center gap-4 flex-wrap">
-            <Button href={hero.primaryHref}>
-              <EditableText path="hero.primaryLabel" value={hero.primaryLabel} as="span" hrefPath="hero.primaryHref" hrefValue={hero.primaryHref} />
-            </Button>
-            <Button href={hero.secondaryHref} variant="secondary">
-              <EditableText path="hero.secondaryLabel" value={hero.secondaryLabel} as="span" hrefPath="hero.secondaryHref" hrefValue={hero.secondaryHref} />
-            </Button>
+            <span className="inline-flex items-center">
+              <Button
+                href={hero.primaryHref}
+                style={primaryColor ? { backgroundColor: primaryColor, color: '#fff', borderColor: 'transparent' } : undefined}
+              >
+                <EditableText path="hero.primaryLabel" value={hero.primaryLabel} as="span" hrefPath="hero.primaryHref" hrefValue={hero.primaryHref} />
+              </Button>
+              <ColorSwatch path="hero.primaryColor" label="Button colour" />
+            </span>
+            <span className="inline-flex items-center">
+              <Button
+                href={hero.secondaryHref}
+                variant="secondary"
+                style={secondaryColor ? { backgroundColor: secondaryColor, color: '#fff', borderColor: 'transparent' } : undefined}
+              >
+                <EditableText path="hero.secondaryLabel" value={hero.secondaryLabel} as="span" hrefPath="hero.secondaryHref" hrefValue={hero.secondaryHref} />
+              </Button>
+              <ColorSwatch path="hero.secondaryColor" label="Button colour" />
+            </span>
           </div>
 
           <p className="text-[0.72rem] text-[var(--ink-3)] mt-6 tracking-[0.06em]">

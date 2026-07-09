@@ -1,11 +1,16 @@
 import Link from 'next/link'
 import clsx from 'clsx'
+import type { CSSProperties } from 'react'
 
 interface ButtonProps {
   children: React.ReactNode
   href?: string
   variant?: 'primary' | 'secondary' | 'ghost'
   className?: string
+  /** Overrides the variant's background colour, e.g. a per-page custom CTA
+   *  colour picked from the editor. Text/border stay as the variant defines
+   *  them — a custom colour is expected to be dark enough for white text. */
+  style?: CSSProperties
   onClick?: () => void
   type?: 'button' | 'submit'
 }
@@ -15,6 +20,7 @@ export default function Button({
   href,
   variant = 'primary',
   className,
+  style,
   onClick,
   type = 'button',
 }: ButtonProps) {
@@ -47,14 +53,14 @@ export default function Button({
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} className={classes} style={style}>
         {content}
       </Link>
     )
   }
 
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} className={classes} style={style}>
       {content}
     </button>
   )

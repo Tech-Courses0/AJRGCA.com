@@ -8,6 +8,8 @@ import EditableImage from '@/components/editable/EditableImage'
 import EditableText from '@/components/editable/EditableText'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
+import ColorSwatch from '@/components/editable/ColorSwatch'
+import { useLiveValue } from '@/components/editable/EditorContext'
 import type { SiteContent } from '@/types/content'
 import type { TeamMember } from '@/types'
 
@@ -17,6 +19,7 @@ export default function AboutPageView({ content }: { content: SiteContent }) {
   const { partners } = content
   const p = content.pages.about
   const newMember = (): TeamMember => ({ name: 'New member', role: 'Role', bio: '', photo: null })
+  const ctaPrimaryColor = useLiveValue('pages.about.cta.primaryColor', p.cta.primaryColor)
 
   return (
     <>
@@ -192,6 +195,8 @@ export default function AboutPageView({ content }: { content: SiteContent }) {
         subtitle={<EditableRichText path="pages.about.cta.subtitle" value={p.cta.subtitle} as="span" />}
         primaryLabel={<EditableText path="pages.about.cta.primaryLabel" value={p.cta.primaryLabel} as="span" hrefPath="pages.about.cta.primaryHref" hrefValue={p.cta.primaryHref} />}
         primaryHref={p.cta.primaryHref}
+        primaryColor={ctaPrimaryColor}
+        primarySwatch={<ColorSwatch path="pages.about.cta.primaryColor" label="Button colour" />}
       />
       <Footer content={content} />
     </>
