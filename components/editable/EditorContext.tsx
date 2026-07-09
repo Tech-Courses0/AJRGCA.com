@@ -16,10 +16,9 @@ interface EditorContextValue {
   canUndo: boolean
   canRedo: boolean
   saveStatus: SaveStatus
-  publish: () => Promise<void>
+  publish: (message: string) => Promise<boolean>
   publishing: boolean
   published: boolean
-  discardDraft: () => Promise<void>
 }
 
 const EditorContext = createContext<EditorContextValue | null>(null)
@@ -39,10 +38,9 @@ export function useEditor(): EditorContextValue {
     canUndo: false,
     canRedo: false,
     saveStatus: 'idle',
-    publish: async () => {},
+    publish: async () => false,
     publishing: false,
     published: false,
-    discardDraft: async () => {},
   }
 }
 
@@ -106,24 +104,22 @@ export function EditorProvider({ initialContent, children }: { initialContent: S
     })
   }, [history, scheduleAutosave])
 
-  const publish = useCallback(async () => {
+  const publish = useCallback(async (message: string) => {
     setPublishing(true)
     try {
-      const res = await fetch('/api/admin/publish', { method: 'POST' })
+      const res = await fetch('/api/admin/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      })
       if (res.ok) {
         setPublished(true)
         setTimeout(() => setPublished(false), 2500)
       }
+      return res.ok
     } finally {
       setPublishing(false)
     }
-  }, [])
-
-  // Reverts the draft to the live version, then reloads so the editor re-seeds
-  // from the freshly-reset draft (in-memory undo history can't hold a whole reset).
-  const discardDraft = useCallback(async () => {
-    const res = await fetch('/api/admin/discard', { method: 'POST' })
-    if (res.ok) window.location.reload()
   }, [])
 
   useEffect(() => {
@@ -151,8 +147,7 @@ export function EditorProvider({ initialContent, children }: { initialContent: S
     publish,
     publishing,
     published,
-    discardDraft,
-  }), [content, getValue, setValue, undo, redo, historyIndex, history.length, saveStatus, publish, publishing, published, discardDraft])
+  }), [content, getValue, setValue, undo, redo, historyIndex, history.length, saveStatus, publish, publishing, published])
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
 }

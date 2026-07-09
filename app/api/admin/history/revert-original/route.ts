@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { discardDraft } from '@/lib/content'
+import { revertToOriginal } from '@/lib/content'
 
 export async function POST() {
-  await discardDraft()
+  await revertToOriginal()
   return NextResponse.json({ ok: true })
 }

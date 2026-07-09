@@ -3,27 +3,40 @@ import { ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 import { pagesDefault } from '@/data/pages'
 import EditableRichText from '@/components/editable/EditableRichText'
+import EditableRepeater from '@/components/editable/EditableRepeater'
 import IconField from '@/components/editable/IconField'
 import type { SiteContent } from '@/types/content'
+import type { BentoPillar } from '@/types/content'
 
 /* Core service pillars, "How we solve" framing — laid out as a bespoke Bento
- * grid whose asymmetric col/row spans depend on these 6 hand-picked cards, so
- * the text is editable but the set itself is fixed (the add/duplicate/reorder
- * collection lives on /services). */
+ * grid whose asymmetric col/row spans (p.className/p.feature) travel with
+ * each card, so reordering/duplicating/deleting stays visually coherent —
+ * EditableRepeater applies that per-item className to the grid cell wrapper
+ * it renders (see its itemClassName function form), not to the <Link> below. */
 export default function BentoGrid({ content }: { content?: SiteContent }) {
   const pillars = content?.pages.home.bentoPillars ?? pagesDefault.home.bentoPillars
   const deepDiveLabel = content?.pages.home.bentoDeepDiveLabel ?? pagesDefault.home.bentoDeepDiveLabel
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 auto-rows-[minmax(0,1fr)] gap-4">
-      {pillars.map((p, i) => {
-        return (
+      <EditableRepeater<BentoPillar>
+        path="pages.home.bentoPillars"
+        items={pillars}
+        addLabel="Add card"
+        itemClassName={(p) => p.className ?? ''}
+        newItem={() => ({
+          icon: 'shield-check',
+          eyebrow: 'New pillar',
+          title: 'New pillar title',
+          body: 'Describe this service pillar.',
+          href: '/services',
+          className: 'md:col-span-1',
+        })}
+        renderItem={(p, i) => (
           <Link
-            key={i}
             href={p.href}
             className={clsx(
-              'group relative flex flex-col justify-between rounded-card p-7 lg:p-8 overflow-hidden no-underline transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)]',
-              p.feature ? 'bg-royal-wash text-white' : 'bg-white border border-[var(--border)] hover:border-[var(--border-dark)]',
-              p.className
+              'group relative flex flex-col justify-between rounded-card p-7 lg:p-8 overflow-hidden no-underline transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)] h-full',
+              p.feature ? 'bg-royal-wash text-white' : 'bg-white border border-[var(--border)] hover:border-[var(--border-dark)]'
             )}
           >
             {p.feature && <span className="bg-architectural absolute inset-0 opacity-40 pointer-events-none" aria-hidden="true" />}
@@ -67,8 +80,8 @@ export default function BentoGrid({ content }: { content?: SiteContent }) {
               <EditableRichText path="pages.home.bentoDeepDiveLabel" value={deepDiveLabel} as="span" /> <ArrowRight size={14} aria-hidden="true" />
             </span>
           </Link>
-        )
-      })}
+        )}
+      />
     </div>
   )
 }

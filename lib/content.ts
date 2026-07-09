@@ -5,6 +5,7 @@ import { services } from '@/data/services'
 import { articles } from '@/data/articles'
 import { leadership, mentors } from '@/data/team'
 import { deepMerge } from '@/lib/objectPath'
+import { commitContentToGithub } from '@/lib/github'
 import { DEFAULT_THEME } from '@/lib/themes'
 import { navDefault, footerDefault } from '@/data/chrome'
 import { pagesDefault } from '@/data/pages'
@@ -112,14 +113,76 @@ export async function saveDraftContent(content: SiteContent): Promise<void> {
   await writeRow('draft', content)
 }
 
-/** Copies draft -> live. */
-export async function publishContent(): Promise<void> {
+/** Copies draft -> live, records the version in site_content_history (powers
+ *  the editor's History panel), then mirrors it to GitHub as a commit — both
+ *  best-effort, a failure there doesn't undo the publish which has already
+ *  gone live in the DB. */
+export async function publishContent(message: string): Promise<void> {
   const draft = await getDraftContent()
   await writeRow('live', draft)
+  const sql = getSql()
+  if (sql) {
+    try {
+      await sql`insert into site_content_history (message, data) values (${message}, ${JSON.stringify(draft)})`
+    } catch (err) {
+      console.error('Failed to record content history:', err)
+    }
+  }
+  try {
+    await commitContentToGithub(draft, message)
+  } catch (err) {
+    console.error('GitHub commit failed:', err)
+  }
 }
 
-/** Throws away unpublished edits: overwrites the draft with the live row
- *  (or defaults if nothing is live yet). */
-export async function discardDraft(): Promise<void> {
-  await writeRow('draft', await getLiveContent())
+export interface ContentHistoryEntry {
+  id: number
+  message: string
+  createdAt: string
+}
+
+/** Most recent published versions, newest first — the editor's History panel. */
+export async function listContentHistory(limit = 5): Promise<ContentHistoryEntry[]> {
+  const sql = getSql()
+  if (!sql) return []
+  const rows = await sql`
+    select id, message, created_at from site_content_history
+    order by created_at desc, id desc
+    limit ${limit}
+  `
+  return rows.map((r) => ({ id: r.id as number, message: r.message as string, createdAt: (r.created_at as Date).toISOString() }))
+}
+
+/** Loads a past published version back into the draft for review — it isn't
+ *  live again until the owner hits Publish, same as any other edit. */
+export async function revertToHistory(id: number): Promise<void> {
+  const sql = getSql()
+  if (!sql) throw new Error('DATABASE_URL not configured — cannot revert.')
+  const rows = await sql`select data from site_content_history where id = ${id}`
+  const stored = rows[0]?.data as Partial<SiteContent> | undefined
+  if (!stored) throw new Error('That version no longer exists.')
+  await writeRow('draft', deepMerge(defaultContent(), stored))
+}
+
+/** Wipes every admin edit ever made — draft and live both reset straight to
+ *  the site's original launch content, live immediately (not staged as a
+ *  draft to review first, unlike revertToHistory). Still recorded in history
+ *  and mirrored to GitHub so it's itself a reversible step. */
+export async function revertToOriginal(): Promise<void> {
+  const original = defaultContent()
+  await writeRow('draft', original)
+  await writeRow('live', original)
+  const sql = getSql()
+  if (sql) {
+    try {
+      await sql`insert into site_content_history (message, data) values ('Reverted to original', ${JSON.stringify(original)})`
+    } catch (err) {
+      console.error('Failed to record content history:', err)
+    }
+  }
+  try {
+    await commitContentToGithub(original, 'Reverted to original')
+  } catch (err) {
+    console.error('GitHub commit failed:', err)
+  }
 }

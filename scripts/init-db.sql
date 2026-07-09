@@ -67,3 +67,14 @@ create table if not exists site_content (
   data jsonb not null,
   updated_at timestamptz not null default now()
 );
+
+-- One row per Publish: the owner-typed change message plus the full content
+-- snapshot that went live, so the editor's History panel can list past
+-- versions and revert the draft back to one. Mirrors the GitHub commit made
+-- at the same time, but queryable without hitting the GitHub API.
+create table if not exists site_content_history (
+  id serial primary key,
+  message text not null,
+  data jsonb not null,
+  created_at timestamptz not null default now()
+);
