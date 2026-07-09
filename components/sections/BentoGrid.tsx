@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import clsx from 'clsx'
 import { pagesDefault } from '@/data/pages'
+import EditableText from '@/components/editable/EditableText'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
 import IconField from '@/components/editable/IconField'
+import { useEditor } from '@/components/editable/EditorContext'
 import type { SiteContent } from '@/types/content'
 import type { BentoPillar } from '@/types/content'
 
@@ -14,6 +16,7 @@ import type { BentoPillar } from '@/types/content'
  * EditableRepeater applies that per-item className to the grid cell wrapper
  * it renders (see its itemClassName function form), not to the <Link> below. */
 export default function BentoGrid({ content }: { content?: SiteContent }) {
+  const { isEditing } = useEditor()
   const pillars = content?.pages.home.bentoPillars ?? pagesDefault.home.bentoPillars
   const deepDiveLabel = content?.pages.home.bentoDeepDiveLabel ?? pagesDefault.home.bentoDeepDiveLabel
   return (
@@ -37,15 +40,13 @@ export default function BentoGrid({ content }: { content?: SiteContent }) {
           // purple gradient, the rest stay white. Pick a colour from the
           // repeater's swatch and it overrides that — any card, any colour.
           const isDark = p.feature || !!p.bg
-          return (
-          <Link
-            href={p.href}
-            style={p.bg ? { background: p.bg } : undefined}
-            className={clsx(
-              'group relative flex flex-col justify-between rounded-card p-7 lg:p-8 overflow-hidden no-underline transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)] h-full',
-              isDark ? clsx('text-white', !p.bg && 'bg-royal-wash') : 'bg-white border border-[var(--border)] hover:border-[var(--border-dark)]'
-            )}
-          >
+          const cardClassName = clsx(
+            'group relative flex flex-col justify-between rounded-card p-7 lg:p-8 overflow-hidden no-underline transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)] h-full',
+            isDark ? clsx('text-white', !p.bg && 'bg-royal-wash') : 'bg-white border border-[var(--border)] hover:border-[var(--border-dark)]'
+          )
+          const cardStyle = p.bg ? { background: p.bg } : undefined
+          const cardContent = (
+            <>
             {p.feature && !p.bg && <span className="bg-architectural absolute inset-0 opacity-40 pointer-events-none" aria-hidden="true" />}
             <span className="gold-reveal absolute top-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500" />
 
@@ -84,9 +85,26 @@ export default function BentoGrid({ content }: { content?: SiteContent }) {
                 isDark ? 'text-[var(--accent-light)]' : 'text-[var(--accent-dark)]'
               )}
             >
-              <EditableRichText path="pages.home.bentoDeepDiveLabel" value={deepDiveLabel} as="span" /> <ArrowRight size={14} aria-hidden="true" />
+              <EditableText
+                path="pages.home.bentoDeepDiveLabel"
+                value={deepDiveLabel}
+                as="span"
+                hrefPath={`pages.home.bentoPillars.${i}.href`}
+                hrefValue={p.href}
+              />
+              <ArrowRight size={14} aria-hidden="true" />
             </span>
-          </Link>
+            </>
+          )
+          // In the editor this card is an edit surface, not a navigation
+          // target — a plain div (not <a href>) so clicking into any field to
+          // edit it can never trigger a route change. The public site still
+          // renders the real <Link>. The "Technical Deep-Dive" label above is
+          // the actual link affordance in the editor, with its own chip.
+          return isEditing ? (
+            <div style={cardStyle} className={cardClassName}>{cardContent}</div>
+          ) : (
+            <Link href={p.href} style={cardStyle} className={cardClassName}>{cardContent}</Link>
           )
         }}
       />
