@@ -34,7 +34,7 @@ const EDIT_OUTLINE =
 const THEME_COLORS = [
   { label: 'Ink', value: '#221042' },
   { label: 'Royal', value: '#301850' },
-  { label: 'Gold', value: '#C5A059' },
+  { label: 'Gold', value: '#896A2E' },
   { label: 'Muted', value: '#6A5E83' },
 ]
 

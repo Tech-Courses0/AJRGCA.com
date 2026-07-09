@@ -20,9 +20,13 @@ export function setPath<T>(obj: T, path: string, value: unknown): T {
 function setAt(node: unknown, keys: string[], value: unknown): unknown {
   const [key, ...rest] = keys
   const isArray = Array.isArray(node)
+  // node may be a primitive (e.g. a legacy string item being upgraded to an
+  // object shape, like badges saved before they had an `icon` field) —
+  // spreading a string here would fan it out into {0:'P',1:'a',...} instead
+  // of starting a fresh object, silently corrupting the item.
   const clone: Record<string, unknown> | unknown[] = isArray
     ? [...(node as unknown[])]
-    : { ...(node as Record<string, unknown>) }
+    : isPlainObject(node) ? { ...node } : {}
 
   if (rest.length === 0) {
     ;(clone as Record<string, unknown>)[key] = value

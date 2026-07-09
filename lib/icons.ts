@@ -57,3 +57,22 @@ export const ICON_KEYS = Object.keys(iconMap) as IconKey[]
 export function getIcon(key?: string | null): LucideIcon {
   return (key && iconMap[key as IconKey]) || FALLBACK_ICON
 }
+
+/** Keyword → icon guesses for text saved before an icon field existed (e.g.
+ *  badges from an older content schema). First match wins; falls back to a
+ *  generic badge icon. Just a starting point — always user-editable after. */
+const ICON_GUESSES: [RegExp, IconKey][] = [
+  [/partner|match/i, 'user-check'],
+  [/confidential|private|secure/i, 'lock'],
+  [/no obligation|free|no.?cost/i, 'check-circle'],
+  [/fast|quick|same.?day/i, 'clock'],
+  [/trust|verified|guarantee/i, 'shield-check'],
+  [/award|top|best/i, 'award'],
+  [/confirm|day|schedule|date/i, 'calendar-check'],
+  [/share|require|submit|form/i, 'clipboard-list'],
+  [/meet|plan|next step/i, 'check-circle'],
+]
+
+export function guessIcon(text: string): IconKey {
+  return ICON_GUESSES.find(([re]) => re.test(text))?.[1] ?? 'badge-check'
+}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { CalendarCheck, MapPin } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -9,7 +10,8 @@ import ConsultationCalendar from '@/components/sections/ConsultationCalendar'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
 import IconField from '@/components/editable/IconField'
-import { getIcon, type IconKey } from '@/lib/icons'
+import { useEditor } from '@/components/editable/EditorContext'
+import { guessIcon, type IconKey } from '@/lib/icons'
 import type { SiteContent, BadgeItem } from '@/types/content'
 
 type Step = { title: string; desc: string; icon: IconKey }
@@ -17,6 +19,35 @@ type Faq = { q: string; a: string }
 
 export default function BookPageView({ content }: { content: SiteContent }) {
   const p = content.pages.book
+  const { isEditing, getValue, setValue } = useEditor()
+
+  // Self-heal badges/steps saved before the icon field existed — badges as
+  // plain strings, steps as objects missing `.icon`. Both get a guessed icon
+  // so they render something meaningful (instead of the fallback circle) and
+  // become editable like every icon added since.
+  //
+  // Must check the *live* editor content (getValue), not the `content` prop —
+  // that prop is the static initial fetch from EditorShell and never updates,
+  // so checking it directly would see the same "needs fixing" state forever
+  // and setValue on every render: an infinite loop.
+  useEffect(() => {
+    if (!isEditing) return
+    const live = (getValue('pages.book') as typeof p) ?? p
+    const badgesNeedFix = live.badges.some((b) => typeof b === 'string')
+    const stepsNeedFix = live.steps.some((s) => !s.icon)
+    if (!badgesNeedFix && !stepsNeedFix) return
+    // One write, not two — two setValue calls in the same tick would each
+    // close over the same pre-update content and stomp each other.
+    setValue('pages.book', {
+      ...live,
+      badges: badgesNeedFix
+        ? live.badges.map((b) => (typeof b === 'string' ? { label: b, icon: guessIcon(b) } : b))
+        : live.badges,
+      steps: stepsNeedFix
+        ? live.steps.map((s) => (s.icon ? s : { ...s, icon: guessIcon(s.title) }))
+        : live.steps,
+    })
+  }, [isEditing, getValue, setValue, p])
 
   return (
     <>
@@ -42,19 +73,15 @@ export default function BookPageView({ content }: { content: SiteContent }) {
               addLabel="Add badge"
               itemClassName="inline-flex"
               renderItem={(badge, i) => {
-                // Tolerate a legacy string badge (drafts saved before badges
-                // grew an icon): render it with a fallback icon, no picker.
+                // Legacy string badges get upgraded to {label, icon} by the
+                // effect above; this covers the one render before that runs.
                 const legacy = typeof badge === 'string'
                 const b = badge as BadgeItem | string
                 const label = legacy ? (b as string) : (b as BadgeItem).label
-                const FallbackIcon = getIcon(undefined)
+                const icon = legacy ? guessIcon(b as string) : (b as BadgeItem).icon
                 return (
                   <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-[var(--ink-2)]">
-                    {legacy ? (
-                      <FallbackIcon size={15} className="text-[var(--accent)]" aria-hidden="true" />
-                    ) : (
-                      <IconField path={`pages.book.badges.${i}.icon`} value={(b as BadgeItem).icon} size={15} className="text-[var(--accent)]" />
-                    )}
+                    <IconField path={`pages.book.badges.${i}.icon`} value={icon} size={15} className="text-[var(--accent)]" />
                     <EditableRichText path={legacy ? `pages.book.badges.${i}` : `pages.book.badges.${i}.label`} value={label} as="span" />
                   </span>
                 )
@@ -82,7 +109,7 @@ export default function BookPageView({ content }: { content: SiteContent }) {
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <div className="flex items-center gap-2.5 mb-2">
-                      <IconField path={`pages.book.steps.${i}.icon`} value={step.icon} size={17} className="text-[var(--accent)]" />
+                      <IconField path={`pages.book.steps.${i}.icon`} value={step.icon || guessIcon(step.title)} size={17} className="text-[var(--accent)]" />
                       <EditableRichText path={`pages.book.steps.${i}.title`} value={step.title} as="h3" className="text-[0.95rem] font-semibold text-[var(--ink)]" />
                     </div>
                     <EditableRichText path={`pages.book.steps.${i}.desc`} value={step.desc} as="p" className="text-[0.82rem] text-[var(--ink-3)] leading-relaxed" />
