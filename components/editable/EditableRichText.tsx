@@ -88,6 +88,20 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
 
   const current = (getValue(path) as string | undefined) ?? value
 
+  // The DOM node's innerHTML is otherwise never touched after mount (see
+  // setNode above), so an external change to this field's value — undo/redo,
+  // History revert, "Revert to original" — updates the store but the text
+  // on screen silently stays whatever was last typed. Re-sync it here, but
+  // skip while this field is focused so it doesn't collapse an active
+  // selection/cursor mid-edit (typing itself never changes `current` — that
+  // only happens on blur — so this only fires for external updates).
+  useEffect(() => {
+    if (!ref.current) return
+    if (document.activeElement === ref.current) return
+    const html = sanitizeHtml(current)
+    if (ref.current.innerHTML !== html) ref.current.innerHTML = html
+  }, [current])
+
   function handleBlur() {
     const html = sanitizeHtml(ref.current?.innerHTML ?? '')
     if (html !== current) setValue(path, html)
