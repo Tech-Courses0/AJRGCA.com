@@ -1,5 +1,6 @@
 import Button from '@/components/ui/Button'
 import FadeIn from '@/components/ui/FadeIn'
+import clsx from 'clsx'
 import EditableText from '@/components/editable/EditableText'
 import EditableRichText from '@/components/editable/EditableRichText'
 import EditableRepeater from '@/components/editable/EditableRepeater'
@@ -71,30 +72,42 @@ export default function HeroSection({ content }: { content: SiteContent }) {
                 items={hero.facts}
                 newItem={() => ({ value: '0', label: 'New fact' })}
                 addLabel="Add box"
-                renderItem={(f, i) => (
-                  <div
-                    key={i}
-                    className={i === 1
-                      ? 'on-dark group relative bg-royal-wash p-6 overflow-hidden transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)]'
-                      : 'group relative bg-white border border-[var(--border)] p-6 shadow-[var(--elev-1)] transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[var(--border-dark)] hover:shadow-[var(--elev-2)]'}
-                  >
-                    {i === 1 && <span className="gold-reveal absolute left-0 top-0 h-full w-[2px]" />}
-                    <EditableRichText
-                      path={`hero.facts.${i}.value`}
-                      value={f.value}
-                      as="div"
-                      className="font-syne font-extrabold text-[2.4rem] gold-text leading-none"
-                    />
-                    <EditableRichText
-                      path={`hero.facts.${i}.label`}
-                      value={f.label}
-                      as="div"
-                      className={i === 1
-                        ? 'text-[0.78rem] text-white/60 tracking-[0.04em] mt-1'
-                        : 'text-[0.78rem] text-[var(--ink-3)] tracking-[0.04em] mt-1'}
-                    />
-                  </div>
-                )}
+                colorPath={(_, i) => `hero.facts.${i}.bg`}
+                renderItem={(f, i) => {
+                  // No custom colour picked: box 2 keeps its default purple
+                  // gradient (today's look), the rest stay white. Pick a
+                  // colour from the repeater's swatch and it overrides that —
+                  // any box, any colour, flat background + light text.
+                  const isDark = i === 1 || !!f.bg
+                  return (
+                    <div
+                      key={i}
+                      style={f.bg ? { background: f.bg } : undefined}
+                      className={clsx(
+                        'group relative p-6 transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-[var(--elev-2)]',
+                        isDark
+                          ? clsx('on-dark overflow-hidden', !f.bg && 'bg-royal-wash')
+                          : 'bg-white border border-[var(--border)] shadow-[var(--elev-1)] hover:border-[var(--border-dark)]'
+                      )}
+                    >
+                      {isDark && <span className="gold-reveal absolute left-0 top-0 h-full w-[2px]" />}
+                      <EditableRichText
+                        path={`hero.facts.${i}.value`}
+                        value={f.value}
+                        as="div"
+                        className="font-syne font-extrabold text-[2.4rem] gold-text leading-none"
+                      />
+                      <EditableRichText
+                        path={`hero.facts.${i}.label`}
+                        value={f.label}
+                        as="div"
+                        className={isDark
+                          ? 'text-[0.78rem] text-white/60 tracking-[0.04em] mt-1'
+                          : 'text-[0.78rem] text-[var(--ink-3)] tracking-[0.04em] mt-1'}
+                      />
+                    </div>
+                  )
+                }}
               />
             </div>
           </div>

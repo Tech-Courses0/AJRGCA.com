@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
-import { Copy, Trash2, Plus, GripVertical, ChevronUp, ChevronDown, ImageIcon } from 'lucide-react'
+import { Copy, Trash2, Plus, GripVertical, ChevronUp, ChevronDown, ImageIcon, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useEditor } from './EditorContext'
 
@@ -26,6 +26,11 @@ interface EditableRepeaterProps<T> {
    *  Pairs with `<EditableImage hideChangeButton>` in `renderItem` so there's
    *  one hover surface per item instead of two competing overlays. */
   imageUploadPath?: (item: T, index: number) => string
+  /** When items carry a per-item colour (e.g. a stat's accent colour), return
+   *  the dot-path to that field and the control bar grows a colour swatch —
+   *  native `<input type="color">`, no picker library needed. `renderItem`
+   *  reads the same path back out to apply the colour wherever it's used. */
+  colorPath?: (item: T, index: number) => string
 }
 
 /** Renders `items.map(renderItem)` untouched when not editing (identical to
@@ -42,6 +47,7 @@ export default function EditableRepeater<T>({
   allowAdd = true,
   allowDuplicate = true,
   imageUploadPath,
+  colorPath,
 }: EditableRepeaterProps<T>) {
   const { isEditing, getValue, setValue } = useEditor()
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -164,6 +170,7 @@ export default function EditableRepeater<T>({
               <ChevronDown size={13} />
             </button>
             {imageUploadPath && <ImageUploadButton path={imageUploadPath(item, i)} />}
+            {colorPath && <ColorPickerButton path={colorPath(item, i)} />}
             {allowDuplicate && (
               <button type="button" title="Duplicate" onClick={() => duplicate(i)} className="p-1 hover:bg-blue-50 rounded text-[var(--ink-3)]">
                 <Copy size={13} />
@@ -264,5 +271,48 @@ function ImageUploadButton({ path }: { path: string }) {
       </button>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </>
+  )
+}
+
+/** Colour swatch in the control bar — native `<input type="color">` behind a
+ *  button showing the current colour, so per-item colour needs no picker
+ *  library or extra popover UI. */
+function ColorPickerButton({ path }: { path: string }) {
+  const { getValue, setValue } = useEditor()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const raw = getValue(path) as string | undefined
+  const current = raw || '#ffffff'
+
+  return (
+    <span className="relative inline-flex items-center">
+      <span className="relative inline-flex">
+        <button
+          type="button"
+          title="Colour"
+          onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
+          className="p-1 rounded hover:bg-blue-50"
+        >
+          <span className="block w-[13px] h-[13px] rounded-full border border-black/10" style={{ backgroundColor: current }} />
+        </button>
+        <input
+          ref={inputRef}
+          type="color"
+          value={current}
+          onChange={(e) => setValue(path, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+        />
+      </span>
+      {raw && (
+        <button
+          type="button"
+          title="Reset to default colour"
+          onClick={(e) => { e.stopPropagation(); setValue(path, undefined) }}
+          className="p-1 rounded hover:bg-blue-50 text-[var(--ink-3)]"
+        >
+          <X size={11} />
+        </button>
+      )}
+    </span>
   )
 }

@@ -66,6 +66,11 @@ export interface ThemeContent {
 export interface HeroFact {
   value: string
   label: string
+  /** Custom card background, e.g. '#6830a4'. Unset = today's look (white,
+   *  except the 2nd box which stays its default purple gradient). Set = flat
+   *  colour with light/white text, so the owner can make any box purple (or
+   *  any other brand colour) straight from the repeater. */
+  bg?: string
 }
 export interface HeroContent {
   eyebrow: string
