@@ -72,6 +72,18 @@ export interface HeroFact {
    *  any other brand colour) straight from the repeater. */
   bg?: string
 }
+/** A CTA button: label/href editable inline (link-chip), variant picks the
+ *  visual style, `color` is a per-button background override set from the
+ *  repeater's colour swatch (unset = variant's default look). Rendered
+ *  through an EditableRepeater everywhere it appears, so the owner can
+ *  reorder/duplicate/delete/add buttons, not just edit text. */
+export interface CTAButton {
+  label: string
+  href: string
+  variant?: 'primary' | 'secondary'
+  color?: string
+}
+
 export interface HeroContent {
   eyebrow: string
   titleLine1: string
@@ -80,13 +92,7 @@ export interface HeroContent {
   titleAccent: string
   subtitle: string
   facts: HeroFact[]
-  primaryLabel: string
-  primaryHref: string
-  secondaryLabel: string
-  secondaryHref: string
-  /** Custom button background, e.g. '#6830a4'. Unset = today's default look. */
-  primaryColor?: string
-  secondaryColor?: string
+  buttons: CTAButton[]
 }
 
 /** Interactive compliance-calendar section: editable header + an extendible
@@ -189,19 +195,14 @@ export interface BentoPillar {
    *  except the feature card which stays its default purple gradient). */
   bg?: string
 }
-/** Shared shape for every page's closing CTA block — two buttons whose
- *  background colour the owner can override per-button (unset = today's
- *  default look), same colour-swatch pattern as the repeater boxes. */
+/** Shared shape for every page's closing CTA block — its buttons are a
+ *  repeater collection (add/reorder/duplicate/delete/colour), not fixed
+ *  primary/secondary slots. */
 export interface CTAFields {
   titleLead: string
   titleAccent: string
   subtitle: string
-  primaryLabel: string
-  primaryHref: string
-  secondaryLabel: string
-  secondaryHref: string
-  primaryColor?: string
-  secondaryColor?: string
+  buttons: CTAButton[]
 }
 
 export interface HomePageContent {
@@ -295,14 +296,7 @@ export interface AboutPageContent {
   leadershipHeader: { label: string; title: string; subtitle: string }
   leadershipNote: string
   mentorsHeader: { label: string; title: string }
-  cta: {
-    titleLead: string
-    titleAccent: string
-    subtitle: string
-    primaryLabel: string
-    primaryHref: string
-    primaryColor?: string
-  }
+  cta: CTAFields
 }
 
 export interface LegalDocContent {

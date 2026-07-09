@@ -143,8 +143,8 @@ export default async function ArticlePage(
       <CTASection
         title={<>Have a question on this<br /><em className="italic gold-text">topic?</em></>}
         subtitle="Our partners are available to discuss how these considerations may apply to your business."
-        primaryLabel="Contact Us"
-        primaryHref="/contact"
+        buttonsPath="__insights_article_cta"
+        buttons={[{ label: 'Contact Us', href: '/contact', variant: 'primary' }]}
       />
       <Footer content={content} />
     </>
