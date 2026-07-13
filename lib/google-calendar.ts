@@ -1,7 +1,10 @@
 import { google } from 'googleapis'
 import { getSql } from './db'
 
-const SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+const SCOPES = [
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/gmail.send',
+]
 
 function hasGoogleCredentials() {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
@@ -83,7 +86,7 @@ export async function disconnectGoogleCalendar() {
   await sql`delete from google_tokens where id = 1`
 }
 
-async function getAuthorizedClient() {
+export async function getAuthorizedGoogleClient() {
   if (!hasGoogleCredentials()) return null
   const sql = getSql()
   if (!sql) return null
@@ -137,7 +140,7 @@ export async function createCalendarEvent({
   attendeeEmails,
   addGoogleMeet,
 }: CalendarEventArgs): Promise<CalendarEventResult | null> {
-  const auth = await getAuthorizedClient()
+  const auth = await getAuthorizedGoogleClient()
   if (!auth) {
     console.log('[google-calendar][dev] not connected — would create event:', { eventId, summary, date, time })
     return null

@@ -1,70 +1,54 @@
 import { NextResponse } from 'next/server'
-import { site } from '@/config/site'
 import { getSql } from '@/lib/db'
-import { sendMail } from '@/lib/resend'
+import { getDestinationEmail, sendMail } from '@/lib/mail'
 import { createBooking } from '@/lib/bookings'
+import { validateFormPayload, validReplyTo } from '@/lib/contact-validation'
 
-type ContactPayload = {
-  formType: 'contact'
-  name: string
-  organisation?: string
-  email: string
-  message: string
-  website?: string // honeypot
-}
-
-type ConsultationPayload = {
-  formType: 'consultation'
-  name: string
-  organisation?: string
-  email: string
-  phone: string
-  businessType?: string
-  serviceArea?: string
-  mode?: string
-  date?: string
-  time?: string
-  message: string
-  consent: boolean
-  website?: string // honeypot
-}
-
-type Payload = ContactPayload | ConsultationPayload
-
-function isEmail(value: string) {
-  return /\S+@\S+\.\S+/.test(value)
-}
-
-function validate(body: Payload): string | null {
-  if (!body.name?.trim()) return 'Name is required.'
-  if (!body.email?.trim() || !isEmail(body.email)) return 'A valid email is required.'
-  if (!body.message?.trim()) return 'Message is required.'
-  if (body.formType === 'consultation') {
-    if (!body.phone?.trim()) return 'Phone is required.'
-    if (body.consent !== true) return 'Consent is required.'
-  }
-  return null
-}
+const MAX_REQUEST_BYTES = 25_000
 
 export async function POST(req: Request) {
-  let body: Payload
+  const contentLength = Number(req.headers.get('content-length') || 0)
+  if (contentLength > MAX_REQUEST_BYTES) {
+    return NextResponse.json({ ok: false, error: 'Submission is too large.' }, { status: 413 })
+  }
+
+  let raw: unknown
   try {
-    body = await req.json()
+    raw = await req.json()
   } catch {
     return NextResponse.json({ ok: false, error: 'Invalid request body.' }, { status: 400 })
   }
 
+  const rawBytes = Buffer.byteLength(JSON.stringify(raw), 'utf8')
+  if (rawBytes > MAX_REQUEST_BYTES) {
+    return NextResponse.json({ ok: false, error: 'Submission is too large.' }, { status: 413 })
+  }
+
+  const honeypot = raw && typeof raw === 'object' && !Array.isArray(raw) && typeof (raw as { website?: unknown }).website === 'string'
+    ? (raw as { website: string }).website
+    : ''
+
   // Honeypot — bots that fill this get a success response with no side effects.
-  if (body.website?.trim()) {
+  if (honeypot.trim()) {
     return NextResponse.json({ ok: true })
   }
 
-  const validationError = validate(body)
-  if (validationError) {
-    return NextResponse.json({ ok: false, error: validationError }, { status: 400 })
+  let body
+  try {
+    body = validateFormPayload(raw)
+  } catch (error) {
+    return NextResponse.json(
+      { ok: false, error: error instanceof Error ? error.message : 'Invalid submission.' },
+      { status: 400 }
+    )
   }
 
   const origin = new URL(req.url).origin
+  const submittedAt = new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'full',
+    timeStyle: 'long',
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date())
 
   try {
     if (body.formType === 'consultation') {
@@ -80,22 +64,42 @@ export async function POST(req: Request) {
           date: body.date,
           time: body.time,
           message: body.message,
+          sourcePage: body.sourcePage,
+          sourceForm: body.sourceForm,
+          submittedAt,
         },
         origin
       )
       return NextResponse.json({ ok: true, statusUrl: `/booking/${clientToken}` })
     }
 
-    const subject = `Website enquiry — ${body.name}`
-    const text = `Name: ${body.name}\nOrganisation: ${body.organisation || ''}\nEmail: ${body.email}\n\n${body.message}`
-    const resendMessageId = await sendMail({ to: site.deliveryEmail, replyTo: body.email, subject, text })
+    const subject = `New website enquiry — ${body.name}`
+    const text = [
+      `Visitor name: ${body.name}`,
+      `Visitor email: ${body.email}`,
+      `Phone number: ${body.phone}`,
+      `Organisation: ${body.organisation || '—'}`,
+      `Service / interest: ${body.serviceArea}`,
+      `Submitted: ${submittedAt}`,
+      `Page: ${body.sourcePage}`,
+      `Form: ${body.sourceForm}`,
+      '',
+      'Message:',
+      body.message,
+    ].join('\n')
+    const messageId = await sendMail({
+      to: getDestinationEmail(),
+      replyTo: validReplyTo(body.email),
+      subject,
+      text,
+    })
 
     const sql = getSql()
     if (sql) {
       try {
         await sql`
-          insert into submissions (form_type, name, organisation, email, message, raw, resend_message_id)
-          values ('contact', ${body.name}, ${body.organisation || null}, ${body.email}, ${body.message}, ${JSON.stringify(body)}, ${resendMessageId})
+          insert into submissions (form_type, name, organisation, email, phone, message, raw, resend_message_id)
+          values ('contact', ${body.name}, ${body.organisation || null}, ${body.email}, ${body.phone}, ${body.message}, ${JSON.stringify({ ...body, submittedAt })}, ${messageId})
         `
       } catch (err) {
         console.error('[contact] Postgres insert failed:', err)
@@ -107,6 +111,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('[contact] send failed:', err)
-    return NextResponse.json({ ok: false, error: 'Failed to send. Please email us directly.' }, { status: 502 })
+    return NextResponse.json({ ok: false, error: 'We could not send your enquiry right now. Please try again shortly.' }, { status: 502 })
   }
 }

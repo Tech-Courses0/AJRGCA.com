@@ -15,31 +15,9 @@ type Props = {
   onSent?: (summary: ConsultationSummary) => void
 }
 
-function mailtoFallback(g: (k: string) => string) {
-  const name = g('name')
-  const subject = encodeURIComponent(`Consultation request — ${name || 'New request'}`)
-  const body = encodeURIComponent(
-    [
-      `Name: ${name}`,
-      `Organisation: ${g('organisation')}`,
-      `Email: ${g('email')}`,
-      `Phone: ${g('phone')}`,
-      `Business type: ${g('businessType')}`,
-      `Service area: ${g('serviceArea')}`,
-      `Preferred mode: ${g('mode')}`,
-      `Preferred date: ${g('date')}`,
-      `Preferred time: ${g('time')}`,
-      '',
-      'Requirement:',
-      g('message'),
-    ].join('\n')
-  )
-  return `mailto:${site.email}?subject=${subject}&body=${body}`
-}
-
 export default function ConsultationForm({ onSent }: Props) {
   const [status, setStatus] = useState<Status>('idle')
-  const [fallbackHref, setFallbackHref] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -61,6 +39,8 @@ export default function ConsultationForm({ onSent }: Props) {
       message: g('message'),
       consent: d.get('consent') === 'on',
       website: g('website'),
+      sourcePage: '/book',
+      sourceForm: 'Consultation booking form',
     }
 
     setStatus('sending')
@@ -70,14 +50,14 @@ export default function ConsultationForm({ onSent }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('request failed')
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'We could not send your request. Please try again.')
       if (data.statusUrl) saveBookingStatusUrl(data.statusUrl)
       setStatus('sent')
       onSent?.({ name: payload.name, mode: payload.mode, date: payload.date, time: payload.time })
       form.reset()
-    } catch {
-      setFallbackHref(mailtoFallback(g))
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'We could not send your request. Please try again.')
       setStatus('error')
     }
   }
@@ -105,22 +85,22 @@ export default function ConsultationForm({ onSent }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label htmlFor="bk-name" className={labelCls}>Name</label>
-          <input id="bk-name" name="name" type="text" required autoComplete="name" className={field} placeholder="Your name" />
+          <input id="bk-name" name="name" type="text" required minLength={2} maxLength={100} autoComplete="name" className={field} placeholder="Your name" />
         </div>
         <div>
           <label htmlFor="bk-org" className={labelCls}>Organisation</label>
-          <input id="bk-org" name="organisation" type="text" autoComplete="organization" className={field} placeholder="Company / firm" />
+          <input id="bk-org" name="organisation" type="text" maxLength={150} autoComplete="organization" className={field} placeholder="Company / firm" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label htmlFor="bk-email" className={labelCls}>Email</label>
-          <input id="bk-email" name="email" type="email" required autoComplete="email" className={field} placeholder="you@example.com" />
+          <input id="bk-email" name="email" type="email" required maxLength={254} autoComplete="email" className={field} placeholder="you@example.com" />
         </div>
         <div>
           <label htmlFor="bk-phone" className={labelCls}>Phone</label>
-          <input id="bk-phone" name="phone" type="tel" required autoComplete="tel" className={field} placeholder="+91 ..." />
+          <input id="bk-phone" name="phone" type="tel" required minLength={7} maxLength={30} pattern="[+()0-9.\-\s]{7,30}" autoComplete="tel" className={field} placeholder="+91 ..." />
         </div>
       </div>
 
@@ -140,7 +120,7 @@ export default function ConsultationForm({ onSent }: Props) {
         </div>
         <div>
           <label htmlFor="bk-service" className={labelCls}>Service area</label>
-          <select id="bk-service" name="serviceArea" className={field} defaultValue="">
+          <select id="bk-service" name="serviceArea" required className={field} defaultValue="">
             <option value="" disabled>Select…</option>
             <option>Audit &amp; Assurance</option>
             <option>Tax — Direct &amp; Indirect</option>
@@ -180,13 +160,13 @@ export default function ConsultationForm({ onSent }: Props) {
 
       <div>
         <label htmlFor="bk-message" className={labelCls}>Briefly, what would you like to discuss?</label>
-        <textarea id="bk-message" name="message" required rows={4} className={field} placeholder="A few lines about your requirement helps us assign the right partner." />
+        <textarea id="bk-message" name="message" required minLength={10} maxLength={4000} rows={4} className={field} placeholder="A few lines about your requirement helps us assign the right partner." />
       </div>
 
       {/* Honeypot — hidden from sighted/keyboard users, visible to basic bots */}
       <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
         <label htmlFor="bk-website">Website</label>
-        <input id="bk-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        <input id="bk-website" name="website" type="text" maxLength={200} tabIndex={-1} autoComplete="off" />
       </div>
 
       <label htmlFor="bk-consent" className="flex items-start gap-2.5 text-[0.76rem] text-[var(--ink-3)] leading-relaxed">
@@ -208,8 +188,7 @@ export default function ConsultationForm({ onSent }: Props) {
       <p className="text-[0.72rem] text-[var(--ink-4)] leading-relaxed" aria-live="polite">
         {status === 'error' ? (
           <>
-            Something went wrong sending your request. Please{' '}
-            <a href={fallbackHref} className="text-[var(--accent-dark)] underline">email us directly</a> instead.
+            {errorMessage}
           </>
         ) : (
           `Submitting sends your request to our team. We typically confirm a slot within ${site.responseTime}.`
