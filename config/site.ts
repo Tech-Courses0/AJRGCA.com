@@ -36,7 +36,10 @@ export const site = {
   },
 
   /* ── Contact ── */
-  email: 'contact@ajrgca.com',
+  email: 'ajrgandassociates@gmail.com',
+  // Server-side destination for website enquiries and booking notifications.
+  // Keep this explicit until the ajrgca.com domain mailbox is ready.
+  deliveryEmail: 'ajrgandassociates@gmail.com',
   /* Turnaround promise shown on the booking/consultation flows. Single source —
      change here and it updates every "we'll confirm within …" line (forms, the
      /book page, the confirmation email, and the booking-status page). */

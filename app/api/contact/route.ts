@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
     const subject = `Website enquiry — ${body.name}`
     const text = `Name: ${body.name}\nOrganisation: ${body.organisation || ''}\nEmail: ${body.email}\n\n${body.message}`
-    const resendMessageId = await sendMail({ to: process.env.CONTACT_TO_EMAIL || site.email, replyTo: body.email, subject, text })
+    const resendMessageId = await sendMail({ to: site.deliveryEmail, replyTo: body.email, subject, text })
 
     const sql = getSql()
     if (sql) {

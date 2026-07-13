@@ -55,7 +55,7 @@ export async function createBooking(payload: BookingPayload, origin: string) {
   }
 
   await sendMail({
-    to: process.env.CONTACT_TO_EMAIL || site.email,
+    to: site.deliveryEmail,
     subject: `New consultation request — ${payload.name}`,
     text: [
       `${payload.name} requested a consultation.`,
@@ -112,7 +112,7 @@ async function finalizeBooking(booking: any, date: string, time: string, origin:
       description: booking.message || '',
       date,
       time,
-      attendeeEmails: [booking.email, process.env.CONTACT_TO_EMAIL || site.email],
+      attendeeEmails: [booking.email, site.deliveryEmail],
     })
   }
 
@@ -137,7 +137,7 @@ async function finalizeBooking(booking: any, date: string, time: string, origin:
   ].join('\n')
 
   await sendMail({ to: booking.email, subject: 'Your consultation is confirmed', text: confirmationText })
-  await sendMail({ to: process.env.CONTACT_TO_EMAIL || site.email, subject: `Confirmed — ${booking.name}`, text: confirmationText })
+  await sendMail({ to: site.deliveryEmail, subject: `Confirmed — ${booking.name}`, text: confirmationText })
 }
 
 type OwnerAction =
@@ -215,7 +215,7 @@ export async function applyClientResponse(clientToken: string, accept: boolean, 
 
   if (sql) await sql`update bookings set status = 'declined', updated_at = now() where id = ${booking.id}`
   await sendMail({
-    to: process.env.CONTACT_TO_EMAIL || site.email,
+    to: site.deliveryEmail,
     subject: `Client declined proposed time — ${booking.name}`,
     text: `${booking.name} (${booking.email}) declined the proposed slot of ${booking.proposed_date} at ${booking.proposed_time}.`,
   })
