@@ -64,8 +64,9 @@ Set these in the host (Vercel env / VPS `.env`):
 EDITOR_USERNAME          editor login
 EDITOR_SECRET            editor password (also the auth cookie value)
 DATABASE_URL             Postgres (Neon or self-hosted) — run scripts/init-db.sql once
-RESEND_API_KEY           email delivery (optional locally)
-CONTACT_TO_EMAIL         inbox for form submissions
+DESTINATION_EMAIL        inbox for all form and booking notifications
+GOOGLE_CLIENT_ID         Gmail and Calendar OAuth client
+GOOGLE_CLIENT_SECRET     Gmail and Calendar OAuth client secret
 BLOB_READ_WRITE_TOKEN    image uploads in prod (see B4)
 GOOGLE_CLIENT_ID/SECRET  Meet booking (optional)
 ```

@@ -1,7 +1,8 @@
 import { getSql } from './db'
-import { sendMail } from './resend'
+import { getDestinationEmail, sendMail } from './mail'
 import { generateToken } from './tokens'
 import { createCalendarEvent } from './google-calendar'
+import { validReplyTo } from './contact-validation'
 import { site, registeredOfficeText, branchOfficeText } from '@/config/site'
 
 export type BookingPayload = {
@@ -15,6 +16,9 @@ export type BookingPayload = {
   date?: string
   time?: string
   message: string
+  sourcePage: string
+  sourceForm: string
+  submittedAt: string
 }
 
 // Coarse preference buckets from the form -> a representative 24h time, used
@@ -55,7 +59,8 @@ export async function createBooking(payload: BookingPayload, origin: string) {
   }
 
   await sendMail({
-    to: site.deliveryEmail,
+    to: getDestinationEmail(),
+    replyTo: validReplyTo(payload.email),
     subject: `New consultation request — ${payload.name}`,
     text: [
       `${payload.name} requested a consultation.`,
@@ -65,6 +70,9 @@ export async function createBooking(payload: BookingPayload, origin: string) {
       `Business type: ${payload.businessType || '—'}`,
       `Service area: ${payload.serviceArea || '—'}`,
       `Preferred: ${payload.mode || '—'} · ${payload.date || 'no date given'} · ${payload.time || '—'}`,
+      `Submitted: ${payload.submittedAt}`,
+      `Page: ${payload.sourcePage}`,
+      `Form: ${payload.sourceForm}`,
       '',
       'Requirement:',
       payload.message,
@@ -124,7 +132,7 @@ async function finalizeBooking(booking: any, date: string, time: string, origin:
     date,
     time,
     location: calendarLocation,
-    attendeeEmails: [booking.email, site.deliveryEmail],
+    attendeeEmails: [booking.email, getDestinationEmail()],
     addGoogleMeet: isVideoCall,
   })
   meetLink = calendarEvent?.meetLink ?? null
@@ -150,7 +158,7 @@ async function finalizeBooking(booking: any, date: string, time: string, origin:
   ].join('\n')
 
   await sendMail({ to: booking.email, subject: 'Your consultation is confirmed', text: confirmationText })
-  await sendMail({ to: site.deliveryEmail, subject: `Confirmed — ${booking.name}`, text: confirmationText })
+  await sendMail({ to: getDestinationEmail(), subject: `Confirmed — ${booking.name}`, text: confirmationText })
 }
 
 type OwnerAction =
@@ -228,7 +236,7 @@ export async function applyClientResponse(clientToken: string, accept: boolean, 
 
   if (sql) await sql`update bookings set status = 'declined', updated_at = now() where id = ${booking.id}`
   await sendMail({
-    to: site.deliveryEmail,
+    to: getDestinationEmail(),
     subject: `Client declined proposed time — ${booking.name}`,
     text: `${booking.name} (${booking.email}) declined the proposed slot of ${booking.proposed_date} at ${booking.proposed_time}.`,
   })

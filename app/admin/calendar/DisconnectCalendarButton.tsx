@@ -7,7 +7,7 @@ export default function DisconnectCalendarButton() {
   const [error, setError] = useState('')
 
   async function disconnect() {
-    if (!window.confirm('Disconnect Google Calendar? New consultations will no longer be added automatically.')) return
+    if (!window.confirm('Disconnect Google services? Form email and automatic calendar events will stop working.')) return
     setBusy(true)
     setError('')
     try {

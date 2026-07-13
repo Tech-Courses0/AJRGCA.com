@@ -4,12 +4,12 @@ import { getGoogleCalendarStatus } from '@/lib/google-calendar'
 import DisconnectCalendarButton from './DisconnectCalendarButton'
 
 const MESSAGES: Record<string, { tone: 'success' | 'error' | 'neutral'; text: string }> = {
-  connected: { tone: 'success', text: 'Google Calendar is connected. New confirmed consultations will be added automatically.' },
+  connected: { tone: 'success', text: 'Google services are connected. Form emails and confirmed consultation events are handled automatically.' },
   cancelled: { tone: 'neutral', text: 'Google connection was cancelled. Nothing changed.' },
   'invalid-state': { tone: 'error', text: 'That Google connection attempt expired or was invalid. Please try again.' },
   'missing-code': { tone: 'error', text: 'Google did not return an authorization code. Please try again.' },
-  'not-configured': { tone: 'error', text: 'Finish the configuration items below before connecting Google Calendar.' },
-  failed: { tone: 'error', text: 'Google Calendar could not be connected. Check the server logs and configuration, then try again.' },
+  'not-configured': { tone: 'error', text: 'Finish the configuration items below before connecting Google services.' },
+  failed: { tone: 'error', text: 'Google services could not be connected. Check the server logs and configuration, then try again.' },
 }
 
 export default async function AdminCalendarPage({
@@ -36,9 +36,9 @@ export default async function AdminCalendarPage({
             </div>
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[var(--ink-4)]">Integrations</p>
-              <h1 className="font-serif-display text-[clamp(1.7rem,4vw,2.25rem)] text-[var(--ink)]">Google Calendar</h1>
+              <h1 className="font-serif-display text-[clamp(1.7rem,4vw,2.25rem)] text-[var(--ink)]">Google Gmail &amp; Calendar</h1>
               <p className="mt-2 text-[0.88rem] leading-relaxed text-[var(--ink-3)]">
-                Every confirmed consultation is added to the firm&apos;s primary calendar. Video calls also receive a Google Meet link, and calendar invitations are emailed to attendees.
+                Website enquiries are sent through the connected Gmail account. Every confirmed consultation is added to its primary calendar; video calls also receive a Google Meet link.
               </p>
             </div>
           </div>
@@ -66,10 +66,13 @@ export default async function AdminCalendarPage({
                 </a>
                 <DisconnectCalendarButton />
               </div>
+              <p className="mt-4 text-[0.78rem] leading-relaxed text-green-800">
+                After Gmail support is first deployed, enable the Gmail API in Google Cloud and use “Reconnect account” once to grant email permission.
+              </p>
             </div>
           ) : ready ? (
             <a href="/api/admin/google/connect" className="inline-flex items-center gap-2 bg-[var(--ink)] px-5 py-3 text-[0.78rem] font-semibold uppercase tracking-[0.06em] text-white hover:bg-[var(--accent)]">
-              Connect Google Calendar <ExternalLink size={14} aria-hidden="true" />
+              Connect Google services <ExternalLink size={14} aria-hidden="true" />
             </a>
           ) : (
             <div className="rounded-md border border-amber-200 bg-amber-50 p-5 text-amber-900">
@@ -83,7 +86,7 @@ export default async function AdminCalendarPage({
           )}
 
           <div className="mt-7 border-t border-[var(--border)] pt-5 text-[0.78rem] leading-relaxed text-[var(--ink-4)]">
-            Google Cloud must allow <code className="bg-[var(--cream)] px-1.5 py-0.5">https://ajrgca.com/api/google/callback</code> as an OAuth redirect URI. AJRGCA stores only the refresh token needed to create consultation events.
+            Enable the Gmail API and Google Calendar API in Google Cloud. Google Cloud must allow <code className="bg-[var(--cream)] px-1.5 py-0.5">https://ajrgcacom.vercel.app/api/google/callback</code> as an OAuth redirect URI. AJRGCA stores only the refresh token needed to send email and create consultation events.
           </div>
         </section>
       </div>
