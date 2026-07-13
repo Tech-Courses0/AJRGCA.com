@@ -1,7 +1,7 @@
 import { getSql } from './db'
 import { sendMail } from './resend'
 import { generateToken } from './tokens'
-import { createMeetEvent } from './google-calendar'
+import { createCalendarEvent } from './google-calendar'
 import { site, registeredOfficeText, branchOfficeText } from '@/config/site'
 
 export type BookingPayload = {
@@ -105,16 +105,29 @@ export async function getBookingByClientToken(token: string) {
 async function finalizeBooking(booking: any, date: string, time: string, origin: string) {
   const sql = getSql()
   let meetLink: string | null = null
-
-  if (booking.mode === 'Video call') {
-    meetLink = await createMeetEvent({
-      summary: `AJRG consultation — ${booking.name}`,
-      description: booking.message || '',
-      date,
-      time,
-      attendeeEmails: [booking.email, site.deliveryEmail],
-    })
-  }
+  const isVideoCall = booking.mode === 'Video call'
+  const calendarLocation = isVideoCall
+    ? 'Google Meet'
+    : booking.mode === 'Mumbai office'
+      ? registeredOfficeText()
+      : booking.mode === 'Noida office'
+        ? branchOfficeText()
+        : booking.mode || 'To be confirmed'
+  const calendarEvent = await createCalendarEvent({
+    eventId: `ajrgbooking${booking.id}`,
+    summary: `AJRG consultation — ${booking.name}`,
+    description: [
+      booking.organisation ? `Organisation: ${booking.organisation}` : '',
+      booking.phone ? `Phone: ${booking.phone}` : '',
+      booking.message || '',
+    ].filter(Boolean).join('\n\n'),
+    date,
+    time,
+    location: calendarLocation,
+    attendeeEmails: [booking.email, site.deliveryEmail],
+    addGoogleMeet: isVideoCall,
+  })
+  meetLink = calendarEvent?.meetLink ?? null
 
   if (sql) {
     await sql`

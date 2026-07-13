@@ -1,28 +1,44 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { storeGoogleTokensFromCode } from '@/lib/google-calendar'
 
-export async function GET(req: Request) {
-  const url = new URL(req.url)
+const OAUTH_STATE_COOKIE = 'ajrg_google_oauth_state'
+
+export async function GET(req: NextRequest) {
+  const url = req.nextUrl
   const code = url.searchParams.get('code')
   const error = url.searchParams.get('error')
+  const state = url.searchParams.get('state')
+  const expectedState = req.cookies.get(OAUTH_STATE_COOKIE)?.value
+  const destination = new URL('/admin/calendar', url.origin)
 
+  if (!state || !expectedState || state !== expectedState) {
+    destination.searchParams.set('google', 'invalid-state')
+    const response = NextResponse.redirect(destination)
+    response.cookies.delete(OAUTH_STATE_COOKIE)
+    return response
+  }
   if (error) {
-    return NextResponse.json({ ok: false, error }, { status: 400 })
+    destination.searchParams.set('google', error === 'access_denied' ? 'cancelled' : 'failed')
+    const response = NextResponse.redirect(destination)
+    response.cookies.delete(OAUTH_STATE_COOKIE)
+    return response
   }
   if (!code) {
-    return NextResponse.json({ ok: false, error: 'Missing authorization code.' }, { status: 400 })
+    destination.searchParams.set('google', 'missing-code')
+    const response = NextResponse.redirect(destination)
+    response.cookies.delete(OAUTH_STATE_COOKIE)
+    return response
   }
-
-  const redirectUri = `${url.origin}/api/google/callback`
 
   try {
-    await storeGoogleTokensFromCode(code, redirectUri)
-    return new NextResponse(
-      '<html><body style="font-family: sans-serif; padding: 40px;">Google Calendar connected. You can close this tab.</body></html>',
-      { headers: { 'Content-Type': 'text/html' } }
-    )
+    await storeGoogleTokensFromCode(code, `${url.origin}/api/google/callback`)
+    destination.searchParams.set('google', 'connected')
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to connect Google Calendar.'
-    return NextResponse.json({ ok: false, error: message }, { status: 500 })
+    console.error('[google-calendar] OAuth callback failed:', err)
+    destination.searchParams.set('google', 'failed')
   }
+
+  const response = NextResponse.redirect(destination)
+  response.cookies.delete(OAUTH_STATE_COOKIE)
+  return response
 }

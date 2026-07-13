@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Undo2, Redo2, LogOut, Rocket, Palette, Settings, Check, HelpCircle, X, History, RotateCcw } from 'lucide-react'
+import { Undo2, Redo2, LogOut, Rocket, Palette, Settings, Check, HelpCircle, X, History, RotateCcw, CalendarCheck } from 'lucide-react'
 import clsx from 'clsx'
 import { useEditor } from './EditorContext'
 
@@ -97,6 +97,12 @@ export default function EditorToolbar({ pages, activePage, onPageChange, activeP
           <Settings size={13} /> Settings
         </button>
         <HistoryButton />
+        <a
+          href="/admin/calendar"
+          className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-[0.72rem] text-white/60 transition-colors hover:text-white"
+        >
+          <CalendarCheck size={13} /> <span className="hidden md:inline">Calendar</span>
+        </a>
         <button
           type="button"
           onClick={async () => {

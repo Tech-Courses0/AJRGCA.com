@@ -50,8 +50,9 @@ Log in, edit inline, click **Publish**. All of these are now self-serve:
 5. **Domain + hosting** — point `ajrgca.com` (currently on the preciousnet
    registrar/host) to the final server, and set up hosting. *(Migration to the
    client VPS is the planned final step.)*
-6. **Google Calendar (optional)** — if using the Meet-link booking flow, connect
-   the firm's Google account once via `/api/google/connect`.
+6. **Google Calendar (optional)** — in the site editor, choose **Calendar**, then
+   connect the firm's Google account. Confirmed consultations are added to the
+   primary calendar; video calls also receive a Google Meet link.
 
 ---
 
@@ -67,7 +68,6 @@ RESEND_API_KEY           email delivery (optional locally)
 CONTACT_TO_EMAIL         inbox for form submissions
 BLOB_READ_WRITE_TOKEN    image uploads in prod (see B4)
 GOOGLE_CLIENT_ID/SECRET  Meet booking (optional)
-ADMIN_SECRET             gates only /api/google/connect
 ```
 
 Env changes require a redeploy (Vercel) or process restart (VPS) to load.
