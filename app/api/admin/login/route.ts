@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createEditorSession } from '@/lib/editor-auth'
 
 // ponytail: in-memory per-instance limiter. Enough to blunt brute force on a
 // single-owner, low-traffic site. Move to Vercel KV/Upstash if it ever runs
@@ -36,12 +37,11 @@ export async function POST(req: NextRequest) {
   attempts.delete(ip)
 
   const res = NextResponse.json({ ok: true })
-  res.cookies.set('ajrg_admin', expected, {
+  res.cookies.set('ajrg_admin', await createEditorSession(expected), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 30,
   })
   return res
 }

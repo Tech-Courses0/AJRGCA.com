@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isEditorSession } from './lib/editor-auth'
 
 const COOKIE = 'ajrg_admin'
 const PUBLIC_API_PATHS = ['/api/admin/login', '/api/admin/logout']
@@ -9,7 +10,7 @@ const PUBLIC_API_PATHS = ['/api/admin/login', '/api/admin/logout']
  * the whole auth model. Rotating the editor password never changes the stored
  * Google refresh token.
  */
-export function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const isEditor = pathname.startsWith('/admin/editor')
   const isCalendarAdmin = pathname.startsWith('/admin/calendar')
@@ -19,7 +20,7 @@ export function proxy(req: NextRequest) {
 
   const secret = process.env.EDITOR_SECRET
   const cookie = req.cookies.get(COOKIE)?.value
-  if (secret && cookie === secret) return NextResponse.next()
+  if (await isEditorSession(cookie, secret)) return NextResponse.next()
 
   if (isProtectedApi) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

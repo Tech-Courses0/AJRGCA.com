@@ -88,20 +88,31 @@ export async function POST(req: Request) {
 
     const subject = `Website enquiry — ${body.name}`
     const text = `Name: ${body.name}\nOrganisation: ${body.organisation || ''}\nEmail: ${body.email}\n\n${body.message}`
-    const resendMessageId = await sendMail({ to: site.deliveryEmail, replyTo: body.email, subject, text })
-
     const sql = getSql()
+    let submissionId: number | null = null
     if (sql) {
       try {
-        await sql`
+        const rows = await sql`
           insert into submissions (form_type, name, organisation, email, message, raw, resend_message_id)
-          values ('contact', ${body.name}, ${body.organisation || null}, ${body.email}, ${body.message}, ${JSON.stringify(body)}, ${resendMessageId})
+          values ('contact', ${body.name}, ${body.organisation || null}, ${body.email}, ${body.message}, ${JSON.stringify(body)}, null)
+          returning id
         `
+        submissionId = Number(rows[0]?.id) || null
       } catch (err) {
         console.error('[contact] Postgres insert failed:', err)
       }
     } else {
       console.log('[contact][dev] would log submission to Postgres:', body)
+    }
+
+    // Persist first so a temporary mail/OAuth outage cannot erase an enquiry.
+    const messageId = await sendMail({ to: site.deliveryEmail, replyTo: body.email, subject, text })
+    if (sql && submissionId && messageId) {
+      try {
+        await sql`update submissions set resend_message_id = ${messageId} where id = ${submissionId}`
+      } catch (err) {
+        console.error('[contact] Postgres message-id update failed:', err)
+      }
     }
 
     return NextResponse.json({ ok: true })

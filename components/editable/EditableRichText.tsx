@@ -46,6 +46,7 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
   const [dirty, setDirty] = useState(false)
   const [toolbar, setToolbar] = useState<{ top: number; left: number } | null>(null)
   const [linkOpen, setLinkOpen] = useState(false)
+  const current = (getValue(path) as string | undefined) ?? value
   // Set innerHTML ONCE, imperatively, via this ref callback — NOT through React's
   // dangerouslySetInnerHTML. React re-applies dangerouslySetInnerHTML on every
   // re-render (even when the html string is byte-identical), and `el.innerHTML =`
@@ -78,15 +79,7 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
     function onDocMouseUp() { updateToolbarPosition() }
     document.addEventListener('mouseup', onDocMouseUp)
     return () => document.removeEventListener('mouseup', onDocMouseUp)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dirty])
-
-  if (!isEditing) {
-    const html = sanitizeHtml(value)
-    return createElement(as, { className, dangerouslySetInnerHTML: { __html: html } })
-  }
-
-  const current = (getValue(path) as string | undefined) ?? value
 
   // The DOM node's innerHTML is otherwise never touched after mount (see
   // setNode above), so an external change to this field's value — undo/redo,
@@ -96,11 +89,17 @@ export default function EditableRichText({ path, value, as = 'p', className }: E
   // selection/cursor mid-edit (typing itself never changes `current` — that
   // only happens on blur — so this only fires for external updates).
   useEffect(() => {
+    if (!isEditing) return
     if (!ref.current) return
     if (document.activeElement === ref.current) return
     const html = sanitizeHtml(current)
     if (ref.current.innerHTML !== html) ref.current.innerHTML = html
-  }, [current])
+  }, [current, isEditing])
+
+  if (!isEditing) {
+    const html = sanitizeHtml(value)
+    return createElement(as, { className, dangerouslySetInnerHTML: { __html: html } })
+  }
 
   function handleBlur() {
     const html = sanitizeHtml(ref.current?.innerHTML ?? '')

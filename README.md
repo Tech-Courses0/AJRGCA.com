@@ -18,6 +18,9 @@ redeploy. See:
   architecture, gotchas, and a portable spec to rebuild it in another site.
 - **[docs/PRODUCT.md](./docs/PRODUCT.md)** — product/brand notes.
 
+- **[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - verified Vercel setup and a
+  repeatable VPS update/runbook.
+
 ## Content architecture (short version)
 
 `config/site.ts` + `data/*` seed `defaultContent()` (`lib/content.ts`), stored as
@@ -51,8 +54,8 @@ npm run dev
 Node runtime required (Postgres reads, dynamic rendering). Currently on **Vercel**
 (auto-deploys production on push to `main`); a VPS with `next start` behind
 `pm2`/systemd works identically. Set the env vars from `.env.example`, run
-`scripts/init-db.sql` once, and see the deploy checklist in
-[docs/VISUAL-EDITOR.md](./docs/VISUAL-EDITOR.md).
+`scripts/init-db.sql` once, and follow
+[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 
 ### Custom domain
 Point `ajrgca.com` at the host (Vercel: Settings → Domains + registrar DNS; VPS:
